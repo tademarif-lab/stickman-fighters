@@ -2,14 +2,14 @@ name: SITE (GitHub Pages)
 
 on:
   push:
-    branches: [main, master]
+    branches: [master, main]
     paths:
       - 'SITE/**'
       - '.github/workflows/site.yml'
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -36,28 +36,98 @@ jobs:
           OWNER: ${{ github.repository_owner }}
           REPO: ${{ github.event.repository.name }}
         run: |
-          sed -i "s|var OWNER = \"KULLANICI\";|var OWNER = \"${OWNER}\";|" index.html
-          sed -i "s|var REPO  = \"stickman-fighters\";|var REPO  = \"${REPO}\";|" index.html
+          sed -i "s|var OWNER = \"[^\"]*\";|var OWNER = \"${OWNER}\";|" index.html
+          sed -i "s|var REPO  = \"[^\"]*\";|var REPO  = \"${REPO}\";|" index.html
           grep -n 'var OWNER\|var REPO' index.html
 
       - name: Sayfayi hazirla
         run: |
           touch .nojekyll
-          cp ../README.md ./KURULUM.md 2>/dev/null || true
-          cp ../APK_YAPIMI.md . 2>/dev/null || true
-          cp ../MOBIL_REHBERI.md . 2>/dev/null || true
-          cp ../ONLINE_REHBERI.md . 2>/dev/null || true
+          for f in README.md APK_YAPIMI.md MOBIL_REHBERI.md ONLINE_REHBERI.md; do
+            [ -f "../$f" ] && cp "../$f" . || true
+          done
           if [ -f ../oyun_ikon.png ]; then cp ../oyun_ikon.png favicon.png; fi
           ls -la
 
+      # ---------------------------------------------------------- YENI
+      # GitHub Pages kaynagini "workflow"a cevir.
+      # (Legacy moddayken configure-pages hata verir -> 404)
+      - name: Pages kaynagini ayarla
+        env:
+          GH: ${{ secrets.GITHUB_TOKEN }}
+          API: https://api.github.com/repos/${{ github.repository }}/pages
+        run: |
+          set -x
+          code=$(curl -sS -o /tmp/p.json -w '%{http_code}' \
+                 -X PATCH "$API" \
+                 -H "Authorization: Bearer $GH" \
+                 -H "Accept: application/vnd.github+json" \
+                 -d '{"build_type":"workflow"}')
+          cat /tmp/p.json || true; echo
+          if [ "$code" != "200" ]; then
+            code2=$(curl -sS -o /tmp/p2.json -w '%{http_code}' \
+                    -X POST "$API" \
+                    -H "Authorization: Bearer $GH" \
+                    -H "Accept: application/vnd.github+json" \
+                    -d '{"build_type":"workflow"}')
+            cat /tmp/p2.json || true; echo
+            echo "POST sonucu: $code2"
+          else
+            echo "PATCH basarili: Pages -> workflow"
+          fi
+
       - name: GitHub Pages kur
+        continue-on-error: true
         uses: actions/configure-pages@v5
 
-      - name: Yayinla
+      - name: Yayinla (Actions)
+        continue-on-error: true
         uses: actions/upload-pages-artifact@v3
         with:
           path: SITE
 
       - id: deploy
-        name: Yayin adresi
+        name: Yayinla
+        continue-on-error: true
         uses: actions/deploy-pages@v4
+
+      # ---------------------------------------------------------- YEDEK
+      # gh-pages dalina da ayni siteyi koy.
+      # Pages "Deploy from a branch" modundaysa bu yol calisir.
+      - name: "Yedek: gh-pages dali"
+        env:
+          GH: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          cd "$GITHUB_WORKSPACE"
+          rm -rf _site_tmp
+          cp -r SITE _site_tmp
+          cd _site_tmp
+          git init -q
+          git checkout -q -b gh-pages
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -q -m "site: gh-pages yayini"
+          git push -q --force \
+            "https://x-access-token:${GH}@github.com/${{ github.repository }}.git" \
+            gh-pages
+          echo "gh-pages dali guncellendi"
+
+      - name: Kontrol
+        run: |
+          url="${{ steps.deploy.outputs.page_url }}"
+          [ -z "$url" ] && url="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/"
+          echo "Beklenen adres: $url"
+          for i in 1 2 3 4 5 6; do
+            sleep 10
+            code=$(curl -s -o /dev/null -w '%{http_code}' "$url" || true)
+            echo "  deneme $i -> $code"
+            if [ "$code" = "200" ]; then
+              echo "SITE YAYINDA: $url"
+              exit 0
+            fi
+          done
+          echo "Henuz 200 degil. Elle ac: $url"
+          echo "Sorun devam ederse: Settings > Pages > Source > Deploy from a branch"
+          echo "  -> Branch: gh-pages   ->  Folder: / (root)"

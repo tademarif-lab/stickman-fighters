@@ -62,9 +62,7 @@ Detaylı rehber: **`ONLINE_REHBERI.md`**
 | `ANDROID/BUILD_APK.md` | **📖 APK rehberi (adım adım)** |
 | `ANDROID/main_mobile.py` | APK giriş noktası (tam ekran + dokunmatik) |
 | `ANDROID/prepare.py` | Oyun dosyalarını + ikonu Android klasörüne kopyalar |
-| `ANDROID/build_apk.sh` | p4a ile APK derler (Linux/mac/WSL) |
-| `ANDROID/build_docker.sh` | Docker içinde APK derler |
-| `ANDROID/build.bat` | Windows'ta WSL üzerinden derler |
+| `ANDROID/build_apk_docker.sh` | p4a resmi Docker imaji ile APK derler |
 | `.github/workflows/android-apk.yml` | **Bulut (GitHub Actions) APK derleme** |
 | `MOBIL_REHBERI.md` | Mobil kontrol rehberi |
 

@@ -28,11 +28,9 @@ GitHub Actions:
 |---|---|
 | `prepare.py` | Oyun dosyalarını `app/` içine kopyalar (p4a kökte bekler) |
 | `main_mobile.py` | APK giriş noktası (tam ekran + dokunmatik + çözünürlük) |
-| `build_apk.sh` | p4a ile APK derler (Linux/mac/WSL) |
-| `build_docker.sh` | Docker içinde derler |
-| `build.bat` | Windows'ta WSL üzerinden derler |
+| `build_apk_docker.sh` | p4a resmi Docker imajı ile APK derler |
 | `app/` | Oyun kaynakları + `requirements.txt` |
-| `../.github/workflows/android-apk.yml` | Bulut derleme iş akışı |
+| `../.github/workflows/android-apk.yml` | Bulut derleme iş akışı (Actions) |
 
 ## Hedef
 

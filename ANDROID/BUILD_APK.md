@@ -40,14 +40,14 @@ sudo apt install -y git zip unzip openjdk-17-jdk python3-pip ccache \
   libjpeg-dev cmake
 
 cd /mnt/c/Users/KULLANICI/Masaüstü/STİCKMAN.FIGHTERS
-bash ANDROID/build_apk.sh
+bash ANDROID/build_apk_docker.sh
 ```
 
 APK → `APK_CIKTI/` klasörüne düşer.
 
 **Docker varsa (her platformda):**
 ```bash
-docker run --rm -v "$PWD":/work -w /work ubuntu:22.04 bash ANDROID/build_docker.sh
+docker run --rm -v "$PWD":/work -w /work ubuntu:22.04 bash ANDROID/build_apk_docker.sh
 ```
 
 ---
@@ -58,9 +58,7 @@ docker run --rm -v "$PWD":/work -w /work ubuntu:22.04 bash ANDROID/build_docker.
 |---|---|
 | `main_mobile.py` | APK'nın giriş noktası (tam ekran, dokunmatik, çözünürlük) |
 | `prepare.py` | Oyun dosyalarını + ikonu Android klasörüne kopyalar |
-| `build_apk.sh` | p4a ile APK derler |
-| `build_docker.sh` | Docker içinde derler |
-| `build.bat` | Windows'ta WSL üzerinden derlemeyi başlatır |
+| `build_apk_docker.sh` | p4a resmi Docker imaji ile APK derler |
 | `app/` | Android projesi (derlenirken buraya oyun dosyaları gelir) |
 | `../.github/workflows/android-apk.yml` | Bulut derleme iş akışı |
 

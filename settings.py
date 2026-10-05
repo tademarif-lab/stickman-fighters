@@ -51,7 +51,7 @@ VERSION = "1.4.0"
 UPDATE_NOTE = "android apk + mobil dokunmatik mod"
 CHANGELOG = [
     ("1.1.0", UPDATE_NOTE, [
-        "ANDROID APK SÜRÜMÜ: telefonda kurulabilen gerçek APK hazırlandı. ANDROID klasörü: main_mobile.py (giriş noktası), prepare.py (dosya + ikon kopyalama), build_apk.sh / build_docker.sh / build.bat (derleme) ve .github/workflows/android-apk.yml (bulutta GitHub Actions ile tek tıkla APK derleme). Adım adım anlatım: ANDROID/BUILD_APK.md",
+        "ANDROID APK SÜRÜMÜ: telefonda kurulabilen gerçek APK hazırlandı. ANDROID klasörü: main_mobile.py (giriş noktası), prepare.py (dosya + ikon kopyalama), build_apk_docker.sh (derleme) ve .github/workflows/android-apk.yml (bulutta GitHub Actions ile tek tıkla APK derleme). Adım adım anlatım: ANDROID/BUILD_APK.md",
         "MOBİL OYUN MODU: oyun artık dokunmatıkla oynanabiliyor. Menülerde dokunma = tıklama, dövüşte solda sanal joystick + sağda 1/2/3/Ulti butonları ve zıpla/eğil. Küçük ekranda klavye kontrol çubuğu gizlenir, can barı küçülür, çözünürlük cihaza göre ayarlanır.",
         "COZUNURLUK DÜZELTMESİ: ekran ölçüsü artık cihaz ekranına göre otomatik ayarlanır (yatay/dikey uyumu dahil) ve dokunma konumu fare sürücüsünden bağımsız çalışır.",
         "ONLINE MOD EKLENDİ: ana menüye ONLINE girdisi. Sunucu bu bilgisayarda çalışır, "

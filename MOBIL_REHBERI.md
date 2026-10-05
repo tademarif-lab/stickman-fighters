@@ -78,12 +78,12 @@ wsl --install -d Ubuntu
 Sonra Ubuntu içinde:
 ```bash
 cd /mnt/c/.../STİCKMAN.FIGHTERS
-bash ANDROID/build_apk.sh
+bash ANDROID/build_apk_docker.sh
 ```
 
 Docker varsa:
 ```bash
-bash ANDROID/build_docker.sh
+bash ANDROID/build_apk_docker.sh
 ```
 
 APK → `APK_CIKTI/` klasörüne düşer.

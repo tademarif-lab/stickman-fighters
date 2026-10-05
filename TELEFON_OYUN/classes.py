@@ -407,6 +407,9 @@ _add(
  ("cm_sev6_asit", S("Asit Alanı", 14.0, "Yere asit bırakır; asit 30 saniye durur, içine girene 15 hasar verir.",
    kind="zone", dmg=15, zw=PX * 3, life=30.0, color=(150, 230, 60),
    repeat=1.0)),
+  ("cm_sev6_fan", S("ASİT FANI", 20.0, "Dev bir asit fıskiyesi açar: önüne 4 asit gölü serer, ortadan bir asit ışını süpürür ve 3 asit fırlatır.",
+   kind="beam", dmg=18, no_limit=True, beam_time=1.4, beam_tick=0.4,
+   color=(150, 230, 60), alternates=2, is_ult=True)),
 )
 
 # ------------------------------------------------------- 27. SPEAKERMAN
@@ -488,6 +491,23 @@ _add(
    kind="buff", buff=["all5"], buff_time=10.0, buff_power=5.0, is_ult=True)),
 )
 
+# ------------------------------------------------------- 31. BUILDER
+_add(
+ ("bd_yumruk", S("Çekiç Yumruğu", 0.5, "Çekiçle vurur; 8 hasar verir ve rakibi 2 saniye yavaşlatır.",
+   dmg=8, range=54, ytop=62, h=22, pose="punch",
+   status=ST("slow", 2.0, 0.0, 0.45))),
+ ("bd_blok", S("Blok Yerleştir", 5.0, "Önüne 4 bloklu bir duvar örer (5 saniye). Duvar ayakta olduğu sürece rakipler içinden geçemez; yıkılırken 10 hasar verir.",
+   kind="wall", dmg=10, zw=PX * 3.5, wall_h=90, wall_time=5.0,
+   wave_speed=430, color=(176, 136, 84), wall_dmg=10)),
+ ("bd_tnt", S("TNT At", 11.0, "TNT bloğu fırlatır. Patladığında 22 hasar verir ve 1.5 saniye sersemletir.",
+   kind="proj", dmg=22, count=1, speed=400, life=1.7, size=18, arc=True,
+   color=(220, 60, 50), status=ST("stun", 1.5), shake=18)),
+ ("bd_ult", S("BİNA KUR", 15.5, "Önüne 5 saniye dayanacak bir blok duvarı diker, duvarın ardına 3 TNT atar ve 2 redstone dalgası gönderir.",
+   kind="wall", dmg=14, zw=PX * 3.0, wall_h=90, wall_time=5.0,
+   wave_speed=520, color=(176, 136, 84), wall_dmg=12,
+   proj_count=3, proj_dmg=16, waves=2, is_ult=True)),
+)
+
 
 CLASSES = [
     {"id": "vampir", "no": 2, "name": "VAMPİR", "hp": 100, "shield": 0, "speed": 285.0,
@@ -559,13 +579,13 @@ CLASSES = [
      "abilities": ["hp_yumruk", "hp_dalga", "hp_ufleme"], "ult": "hp_kasirga"},
 
     {"id": "steve", "no": 13, "name": "STEVE", "hp": 100, "shield": 0, "speed": 265.0,
-     "color": (85, 140, 200), "accessory": "Kare bir vücut", "pack": "fan",
+     "color": (85, 140, 200), "accessory": "Kare bir vücut", "pack": "minestick",
      "story": "Kare bir yüzle dünyaya geldi; elytrayı 500 kez kullandıktan sonra bile gülümsemeye devam etti.",
      "passive": {"name": "Havai Fişek + Elytra", "text": "Zıplama spamıyla uçar; her saniye ultisi %25 dolar."},
      "abilities": ["st_yumruk", "st_tnt", "st_olta"], "ult": "st_ult"},
 
     {"id": "alex", "no": 14, "name": "ALEX", "hp": 50, "shield": 25, "speed": 285.0,
-     "color": (200, 160, 110), "accessory": "Kare Alex kafası", "pack": "fan",
+     "color": (200, 160, 110), "accessory": "Kare Alex kafası", "pack": "minestick",
      "story": "Ok atmayı seven, okuna güvenen ve kalkanını her savaşta ilk kullanan avcı.",
      "passive": {"name": "Dengesiz", "text": "50 can düşük başlar ama 25 kalkan eklenir."},
      "abilities": ["al_vuru", "al_pearl", "al_yay"], "ult": "al_ult"},
@@ -597,55 +617,55 @@ CLASSES = [
      "abilities": ["gv_kilic", "gv_gorunmez", "gv_yarasa"], "ult": "gv_ult"},
 
     {"id": "sovalye", "no": 20, "name": "ŞÖVALYE", "hp": 100, "shield": 75, "speed": 245.0,
-     "color": (185, 190, 205), "accessory": "Şövalye kaskı", "pack": "minestick",
+     "color": (185, 190, 205), "accessory": "Şövalye kaskı", "pack": "orta_cag",
      "story": "Kılıcını kuşanırken tek bir söz verdi: hiçbir dövüşte geri adım atmamak.",
      "passive": {"name": "Kalkan Zırhı", "text": "Aldığı hasarın %7.5'ini engeller."},
      "abilities": ["sv_kilic", "sv_at", "sv_iki_kilic"], "ult": "sv_ult"},
 
     {"id": "okcu", "no": 21, "name": "OKÇU", "hp": 95, "shield": 0, "speed": 275.0,
-     "color": (120, 170, 110), "accessory": "Okçu çantası", "pack": "minestick",
+     "color": (120, 170, 110), "accessory": "Okçu çantası", "pack": "orta_cag",
      "story": "Oku ne kadar şarj edersen o kadar uzağa gider; bir saat basılı tutsa tek atışta haritayı yarıdan keserdi.",
      "passive": {"name": "Sınırsız Şarj", "text": "Tüm yetenekleri şarj edilebilir; her seviye +5 sn."},
      "abilities": ["ok_ok", "ok_hiz", "ok_bes_ok"], "ult": "ok_ult"},
 
     {"id": "celik_adam", "no": 22, "name": "ÇELİK ADAM", "hp": 130, "shield": 125, "speed": 260.0,
-     "color": (200, 60, 60), "accessory": "Lazerli çelik zırh (1. form)", "pack": "orta_cag",
+     "color": (200, 60, 60), "accessory": "Lazerli çelik zırh (1. form)", "pack": "darvel",
      "story": "Zırhı bir daha çıkarmadı; zırh gittiğinde kalan adam da gitti.",
      "passive": {"name": "Zırh Dirilişi", "text": "Öldüğünde dirilir ama zırhı kaybolur (2. forma düşer)."},
      "abilities": ["ca_lazer", "ca_fuze", "ca_uc_lazer"], "ult": "ca_ult"},
 
     {"id": "parazit", "no": 23, "name": "PARAZİT", "hp": 120, "shield": 0, "speed": 280.0,
-     "color": (30, 30, 40), "accessory": "Simsiyah beden ve Venom maskesi", "pack": "orta_cag",
+     "color": (30, 30, 40), "accessory": "Simsiyah beden ve Venom maskesi", "pack": "darvel",
      "story": "Artık sıvı; düşmanının yüzünden bakıyor ve o yüzde konuşuyor.",
      "passive": {"name": "Sıvı Form", "text": "5 sn eğilirse sıvı formuna geçer."},
      "abilities": ["pa_yumruk", "pa_ayril", "pa_venom"], "ult": "pa_ult"},
 
     {"id": "hirsiz", "no": 19, "name": "HIRSIZ", "hp": 110, "shield": 0, "speed": 295.0,
-     "color": (75, 75, 95), "accessory": "Hırsız maskesi", "pack": "darvel",
+     "color": (75, 75, 95), "accessory": "Hırsız maskesi", "pack": "sacma",
      "story": "Uzuvlarını kaybettikçe daha iyi hırsız oldu; sonunda düşmanının kendi yeteneğini çalmayı öğrendi.",
      "passive": {"name": "Uzuv Kopması", "text": "Her 5 hasarda bir kollarından/bacaklarından biri kopar."},
      "abilities": ["hz_yumruk", "hz_uzuv", "hz_yansit"], "ult": "hz_kopya"},
 
     {"id": "spirit", "no": 24, "name": "SPIRIT", "hp": 85, "shield": 0, "speed": 305.0,
-     "color": (210, 235, 255), "accessory": "Saydam bir beden", "pack": "darvel",
+     "color": (210, 235, 255), "accessory": "Saydam bir beden", "pack": "sacma",
      "story": "Ölümünden sonra bir beden bulamayınca 25 saniye kaldı; 24'üncü saniyede bir zombinin içine girdi.",
      "passive": {"name": "Saydam Form", "text": "Dirildiğinde 2. forma geçer; 25 sn içinde beden bulamazsa ölür."},
      "abilities": ["sp_ele_gecir", "sp_duvar", "sp_ucus"], "ult": "sp_ult"},
 
     {"id": "machine", "no": 25, "name": "THE MACHINE", "hp": 250, "shield": 50, "speed": 220.0,
-     "color": (160, 175, 195), "accessory": "Üstüne bindiği robot", "pack": "darvel",
+     "color": (160, 175, 195), "accessory": "Üstüne bindiği robot", "pack": "sacma",
      "story": "İnsan bedeni 5 kat büyüdüğünde artık insan sayılmıyordu.",
      "passive": {"name": "Robot", "text": "250 can + 50 kalkan; robot patlarsa insana döner."},
      "abilities": ["mc_sok", "mc_minigun", "mc_lazer"], "ult": "mc_ult"},
 
     {"id": "suikasteci", "no": 29, "name": "SUIKASTÇİ", "hp": 75, "shield": 0, "speed": 300.0,
-     "color": (55, 60, 70), "accessory": "Kapüşonlu mont ve kelebek bıçak", "pack": "darvel",
+     "color": (55, 60, 70), "accessory": "Kapüşonlu mont ve kelebek bıçak", "pack": "sacma",
      "story": "Belindeki iki bıçağın biri gitti, diğeri hâlâ duruyordu.",
      "passive": {"name": "Kalkan Birikimi", "text": "Canı azalınca kalkan kazanır; ölünce 75 canla dirilir."},
      "abilities": ["su_bicak", "su_atis", "su_canta"], "ult": "su_ult"},
 
     {"id": "hazine", "no": 30, "name": "HAZİNE BAĞIMLISI", "hp": 110, "shield": 0, "speed": 265.0,
-     "color": (190, 150, 70), "accessory": "Sırtında boş sandık", "pack": "darvel",
+     "color": (190, 150, 70), "accessory": "Sırtında boş sandık", "pack": "sacma",
      "story": "Sandığı hiçbir zaman dolmadı; dolu sandığın peşinden koştuğu için hiçbir şeye yetişemedi.",
      "passive": {"name": "-", "text": "Hiçbir pasifi yok."},
      "abilities": ["ha_yumruk", "ha_cek", "ha_sandik"], "ult": "ha_ult"},
@@ -670,7 +690,7 @@ CLASSES = [
           "abilities": ["cm_sev4_lazer", "cm_sev5_testere", "cm_sev4_kalkan2"],
           "ult": "cm_sev4_kalkan2"},
          {"name": "SEVİYE 6 - Asit Titan", "hp": 240, "shield": 120, "scale": 7.5, "stat": 7.0,
-          "abilities": ["cm_sev4_lazer", "cm_sev6_asit", "cm_sev4_kalkan2"], "ult": None},
+          "abilities": ["cm_sev4_lazer", "cm_sev6_asit", "cm_sev4_kalkan2"], "ult": "cm_sev6_fan"},
      ]},
 
     {"id": "speakerman", "no": 27, "name": "SPEAKERMAN", "hp": 100, "shield": 25, "speed": 265.0,
@@ -705,6 +725,14 @@ CLASSES = [
           "abilities": ["tv_sev3_kirmizi", "tv_sev3_kanca", "tv_sev3_kanca"],
           "ult": "tv_sev3_kanca"},
      ]},
+
+    {"id": "builder", "no": 31, "name": "BUILDER", "hp": 120, "shield": 50, "speed": 250.0,
+     "color": (196, 148, 90), "accessory": "Sırtında blok yığını ve çekiç",
+     "pack": "fan",
+     "story": "Her gün üç blok daha koydu; bir gün dövüşe girince etrafına duvar örerek kazandı.",
+     "passive": {"name": "Sağlam Yapı",
+                 "text": "50 kalkanı vardır; önündeki blok duvarı ayaktayken hasarın %20'si geri döner."},
+     "abilities": ["bd_yumruk", "bd_blok", "bd_tnt"], "ult": "bd_ult"},
 ]
 
 CLASS_BY_ID = {c["id"]: c for c in CLASSES}
@@ -727,17 +755,17 @@ PACKS = [
      "desc": "Zehir, ateş, su, toprak, elektrik, hava ve kazma.",
      "story": "Yedi element bir araya geldi; biri hâlâ hangisinin güçlü olduğunu bilmiyor."},
     {"id": "fan", "name": "FAN CHARACTERS", "price": 25.0,
-     "chars": [13, 14], "color": (90, 150, 210),
+     "chars": [31], "color": (90, 150, 210),
+     "desc": "Builder. Duvarlarıyla kazanan tek kişi.",
+     "story": "Steve ve Alex gitti; geriye sadece duvar ören birisi kaldı."},
+    {"id": "minestick", "name": "MİNESTİK İNSANI", "price": 15.5,
+     "chars": [13, 14], "color": (185, 190, 205),
      "desc": "Steve ve Alex. Klasiklerin tahtı.",
      "story": "İkisi de aynı dünyada büyüdü ama farklı silahları seçti."},
-    {"id": "minestick", "name": "MİNESTİK İNSANI", "price": 15.5,
-     "chars": [20, 21], "color": (185, 190, 205),
-     "desc": "Şövalye ve Okçu. Yeraltından çıkan iki yalnız savaşçı.",
-     "story": "Karanlıktan çıkan ikisi de artık karanlıktan korkmuyor."},
     {"id": "orta_cag", "name": "ORTA ÇAĞ SAVAŞÇILARI", "price": 5.5,
-     "chars": [], "color": (200, 60, 60),
-     "desc": "Bu pakete henüz karakter eklenmedi.",
-     "story": "İçi şimdilik boş. Yakında dolacak."},
+     "chars": [20, 21], "color": (150, 120, 80),
+     "desc": "Şövalye ve Okçu. Tahta oturan iki savaşçı.",
+     "story": "Birinin kılıcı, birinin oku vardı; ikisi de aynı yemin peşindeydi."},
     {"id": "darvel", "name": "DARVEL CHARACTERS", "price": 40.0,
      "chars": [22, 23], "color": (200, 60, 60),
      "desc": "Çelik Adam ve Parazit. Zırh ve simbiyot.",

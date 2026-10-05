@@ -1,113 +1,85 @@
-# 📦 APK YAPIMI — KOPYALA YAPIŞTIR
+# 📦 APK YAPIMI
 
-Antigravity'ye (ya da Cursor/Claude/ChatGPT'ye) aşağıdaki metni
-**olduğu gibi** ver. Projeyi inceleyip APK'yı derlemesini iste.
-
----
-
-## 🤖 ANTIGRAVITY'E VERECEĞİN PROMPT
-
-````
-Bu Python/pygame oyununu Android APK olarak derle.
-
-PROJE: STICKMAN FIGHTERS (Minecraft temalı 2D stickman dövüş oyunu)
-KONUM: Bu klasördeki oyun dosyaları (main.py, ui.py, fight.py, classes.py,
-       skills.py, touch.py, savegame.py, online.py vb.)
-
-HEDEF: com.katil5019.stickmanfighters paket adlı, arm64-v8a, sürüm 1.4.0
-       imzalı (release) bir APK üret. Çıktıyı APK_CIKTI/ klasörüne koy.
-
-ŞU DOSYALAR ZATEN HAZIR — ÖNCE BUNLARI OKU VE KULLAN:
-- ANDROID/prepare.py      → oyun dosyalarını ANDROID/app/ içine kopyalar
-                            (p4a kaynak dosyaları kökte bekler)
-- ANDROID/build_apk.sh    → tüm derleme akışı (p4a bootstrap + create)
-- ANDROID/main_mobile.py  → APK giriş noktası (tam ekran + dokunmatik)
-- ANDROID/app/requirements.txt
-
-ÇALIŞTIR:
-1) python3 ANDROID/prepare.py
-2) bash ANDROID/build_apk.sh
-   (p4a zaten kuruluysa sadece 5. adım gerekir:
-    p4a create --arch=arm64-v8a \
-      --package=com.katil5019.stickmanfighters \
-      --name="STICKMAN FIGHTERS" --version=1.4.0 \
-      --requirements=python3,pygame2,setuptools \
-      --launcher=main_mobile.py --release \
-      --permission=INTERNET --bootstrap=sdl2 .)
-
-SORUN ÇIKARSA:
-- 'recipe not found'      → p4a build_recipes --sdl2 --arch=arm64-v8a <tarif>
-- cython sürüm hatası     → pip install "cython==0.29.37"
-- NDK/SDK hatası          → ANDROIDAPI=31 NDKAPI=21 değişkenlerini kullan
-- pygame import çalışmıyor→ requirements'ta 'pygame2' yerine 'pygame' dene
-- derleme çok yavaş        → yalnızca arm64-v8a kullan, tüm mimarileri derleme
-
-BİTİNCE:
-- APK_CIKTI/ klasöründeki .apk dosyasının tam yolunu ve boyutunu bildir
-- Derleme loglarındaki son 20 satırı özetle
-````
+APK, **python-for-android'in (p4a) resmî Docker imajı** ile derlenir.
+Bilgisayarına Android SDK/NDK kurmana gerek yok — imajda her şey hazır.
 
 ---
 
-## 🖥️ SEN (Antigravity kullanmadan) NASIL YAPARSIN
+## ⚡ YÖNTEM A — GitHub Actions (EN KOLAY, ücretsiz)
 
-### Yöntem A — GitHub Actions (EN KOLAY, ücretsiz, 20-25 dk)
 Bilgisayarına hiçbir şey kurmana gerek yok.
 
-1. **github.com** → ücretsiz üye ol
-2. **New repository** oluştur (Private olabilir)
-3. Bu oyun klasörünü repoya yükle
-   - ⚠️ **`.github` klasörü gizli olmamalı** (zaten var)
-4. Repo sayfasında **Actions** sekmesi
-5. Solda **ANDROID APK** iş akışını seç
-6. **Run workflow** → 🟢 yeşil **Run workflow**
-7. 20-25 dakika bekle (derleme ilerleme çubuğunda görünür)
-8. Bittiğinde sayfada **Artifacts** çıkar
-9. **STICKMAN-FIGHTERS-apk** → indir (zip)
-10. Zip'i aç → `.apk` dosyasını telefona gönder
-11. Telefonda dosyaya dokun →
-    **"Bilinen kaynaklardan yükleme"** uyarısı → izin ver → **Kur** 🎉
+1. Repoya yükle (`.github/workflows/android-apk.yml` dahil)
+2. **Actions** sekmesi → **ANDROID APK**
+3. **Run workflow**
 
-> GitHub Actions ayda 2000 dakika ücretsiz; bu derleme ~20 dk.
+| Ayar | Değer | Ne yapar |
+|---|---|---|
+| `arch` | `arm64-v8a` | Telefon mimarisi (2017+ Android) |
+| `cache` | `hayir` | İlk koşuda `hayir` bırak (2. koşuda `evet` yap, hızlı) |
+| `release` | `evet` | Bitince Releases'a otomatik yükler |
 
-### Yöntem B — Antigravity / Cursor / Claude Code (bilgisayarda)
-1. Bu klasörü Antigravity'de aç
-2. Yukarıdaki **ANTIGRAVITY'E VERECEĞİN PROMPT** bölümünü yapıştır
-3. Ajanın derlemesini bekle
-4. `APK_CIKTI/` klasöründe `.apk` çıkacak
+4. **35–55 dakika** bekle
+5. Bittiğinde iki yerden APK çıkar:
+   - **Artifacts** → `STICKMAN-FIGHTERS-apk` (zip)
+   - **Releases** → `STICKMAN-FIGHTERS-1.4.0.apk` (doğrudan)
 
-### Yöntem C — WSL ile kendin
+### Site butonu neden çalışmıyordu?
+
+`SITE/index.html` APK'yı şu adresten çeker:
+```
+https://github.com/tademarif-lab/stickman-fighters/releases/latest/download/STICKMAN-FIGHTERS-1.4.0.apk
+```
+Bu dosya ancak iş akışı `release: evet` ile bitince oluşur.
+
+---
+
+## 🐳 YÖNTEM B — Kendi bilgisayarında Docker
+
+Docker Desktop kuruluysa (Windows'ta WSL2 backend):
+
 ```powershell
-wsl --install -d Ubuntu
+python ANDROID\prepare.py
+bash ANDROID/build_apk_docker.sh
 ```
-Sonra Ubuntu içinde:
-```bash
-sudo apt update
-sudo apt install -y git zip unzip openjdk-17-jdk python3-pip ccache \
-  autoconf automake libtool pkg-config cmake libffi-dev libssl-dev \
-  zlib1g-dev libbz2-dev libncurses-dev libncursesw5-dev xz-utils \
-  libjpeg-dev python3-dev build-essential
-cd /mnt/c/.../STİCKMAN.FIGHTERS
-bash ANDROID/build_apk.sh
-```
-APK → `APK_CIKTI/`
 
-### Yöntem D — Docker
-```bash
-bash ANDROID/build_docker.sh
+APK → `ANDROID/app/dist/`
+
+Onbellegi kullanmak (2. koşudan sonra hızlı):
+```powershell
+$env:CACHE_MOUNT="1"; bash ANDROID/build_apk_docker.sh
+```
+
+Başka mimari:
+```powershell
+$env:ARCH="armeabi-v7a"; bash ANDROID/build_apk_docker.sh
 ```
 
 ---
 
-## ⚡ DERLEME ÖNCESİ BEKLENEN SÜRE
+## 🧱 NASIL ÇALIŞIYOR?
 
-| Adım | Süre |
-|---|---|
-| p4a bootstrap (ilk sefer) | 10-20 dk |
-| tarifleri derleme | 5-10 dk |
-| APK derleme | 5-15 dk |
-| **Toplam (ilk)** | **~30-45 dk** |
-| Toplam (sonraki) | 10-15 dk |
+```
+ANDROID/prepare.py            oyun dosyalarını ANDROID/app/ içine kopyalar
+ANDROID/app/main_mobile.py    APK giriş noktası (tam ekran + dokunmatik)
+ANDROID/app/requirements.txt  python3 / pygame / setuptools
+ANDROID/build_apk_docker.sh   p4a docker imajını çalıştırır
+```
+
+`prepare.py` neden gerekli? python-for-android kaynak dosyaları
+**çalışma dizininin kökünde** bekler. Oyunu `ANDROID/app/` içine
+kopyalıyoruz ki p4a nokta işaretlemesin.
+
+p4a komutu (script içinde):
+
+```
+p4a apk --arch=arm64-v8a --bootstrap=sdl2 --release \
+  --package=com.katil5019.stickmanfighters \
+  --name="STICKMAN FIGHTERS" --version=1.4.0 \
+  --requirements=python3,pygame,setuptools \
+  --launcher=main_mobile.py --permission=INTERNET \
+  --dist-name=STICKMAN-FIGHTERS-1.4.0 .
+```
 
 ---
 
@@ -115,13 +87,31 @@ bash ANDROID/build_docker.sh
 
 | Hata | Çözüm |
 |---|---|
-| `No recipe named: pygame2` | `p4a build_recipes --sdl2 --arch=arm64-v8a pygame2` |
-| `Cython version mismatch` | `pip install "cython==0.29.37"` |
-| `NDK not found` | `ANDROIDAPI=31 NDKAPI=21 p4a bootstrap --sdl2` |
-| `apk: package not found` | `p4a --version` kontrol et, `pip install -U python-for-android` |
-| Oyun açılıp kapanıyor | `p4a create` sonuna `--debug` ekle → `tart` klasöründeki loga bak |
-| Siyah ekran | `main_mobile.py` içinde `pygame.SCALED` kaldır, `FULLSCREEN` dene |
-| Çok büyük APK (~90 MB normal) | `--arch` sadece `arm64-v8a` kalsın, `--release` kullan |
+| `No recipe named: pygame2` | requirements'ta **`pygame`** olmalı, `pygame2` değil (p4a 2026'da ad `pygame`) |
+| `Cython version mismatch` | Docker imajında Cython 0.29.36 kurulu — elle pip kurma, imajı kullan |
+| `NDK not found` | Sorun değil, imajda NDK hazır. `--sdk-dir`/`--ndk-dir` **verme** |
+| `bootstrap` saatlerce sürüyor | İlk koşu normal. 2. koşuda `cache: evet` seç |
+| `APK bulunamadi` | `ANDROID/app/dist/` içine bak, loglarda `--- bitti ---` var mı kontrol et |
+| Dockerfile `cp: permission denied` | `chmod -R a+rwX` eklenmiş; elle çalıştırıyorsan `icacls` gerekebilir |
+| APK telefona kurulmuyor | Android 7+ olmalı. `arm64-v8a` = 64-bit telefon (eski 32-bit için `armeabi-v7a`) |
+| Oyun açılıp kapanıyor | `--release` yerine `--debug` koy, logu `adb logcat` ile oku |
+| Siyah ekran | `main_mobile.py` içinde `SCALED` yerine `FULLSCREEN` dene |
+
+---
+
+## ⚡ GERÇEKÇİ SÜRELER
+
+| Aşama | Süre |
+|---|---|
+| Docker imajını indir (~4 GB) | 3–6 dk |
+| p4a bootstrap (SDL2 + Python + NDK) | 20–35 dk |
+| tarifleri derle (pygame, Pillow…) | 8–15 dk |
+| gradle + paketleme | 5–10 dk |
+| **Toplam (ilk koşu)** | **~40–60 dk** |
+| Toplam (önbellekli) | 8–15 dk |
+
+> GitHub Actions aylık 2000 dakika ücretsiz (public repo'da sınırsız).
+> GitHub'da Actions **dakikası bitmeyen** makinede çalışır, süre limiti 6 saat.
 
 ---
 
@@ -144,7 +134,9 @@ bash ANDROID/build_docker.sh
 | menüler | her yere dokun |
 
 ## 💾 KAYIT
+
 ```
 Android/data/com.katil5019.stickmanfighters/files/SAVE/oyun_kayit.json
 ```
+
 Bu klasörü PC'ye kopyalarsan Ruby + paketler + karakterler taşınır.

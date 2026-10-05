@@ -1,10 +1,20 @@
 ﻿__pycache__/
 *.pyc
 *.pyo
-.buildozer/
-*.apk
+
+# python-for-android
+# ANDROID/app/ prepare.py tarafindan her derlemede uretilir
+ANDROID/app/
+ANDROID/.p4a-cache/
+ANDROID/.buildozer/
 APK_CIKTI/
+*.apk
+
+# gorseller / ikonlar (uretiliyor)
 *.ico
 *.jpg
+oyun_ikon.jpg
+oyun_ikon_512.png
+
 .DS_Store
 Thumbs.db

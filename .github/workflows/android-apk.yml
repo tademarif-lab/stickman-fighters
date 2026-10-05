@@ -1,123 +1,135 @@
 ﻿name: ANDROID APK
 
 on:
-  push:
-    branches: [main, master]
   workflow_dispatch:
-  pull_request:
+    inputs:
+      arch:
+        description: "Mimari"
+        required: false
+        default: "arm64-v8a"
+      cache:
+        description: "Onbellegi kullan (2. kosudan sonra hizlendirir)"
+        required: false
+        default: "hayir"
+        type: choice
+        options:
+          - "hayir"
+          - "evet"
+      release:
+        description: "Bitince Releases'a yukle"
+        required: false
+        default: "evet"
+        type: choice
+        options:
+          - "evet"
+          - "hayir"
+  push:
+    branches: [master, main]
+    paths:
+      - 'ANDROID/**'
+      - '.github/workflows/android-apk.yml'
+
+permissions:
+  contents: write
 
 jobs:
   apk:
-    name: APK derle (arm64-v8a)
-    runs-on: ubuntu-22.04
+    name: APK derle
+    runs-on: ubuntu-latest
     timeout-minutes: 120
-    permissions:
-      contents: write
+    env:
+      ARCH: ${{ github.event.inputs.arch || 'arm64-v8a' }}
+      USE_CACHE: ${{ github.event.inputs.cache || 'hayir' }}
+      DO_RELEASE: ${{ github.event.inputs.release || 'evet' }}
+      TAG: v1.4.0
 
     steps:
       - name: Kodu al
         uses: actions/checkout@v4
 
-      - name: Python kur
-        uses: actions/setup-python@v5
+      - name: Oyun dosyalarini hazirla
+        run: |
+          python3 ANDROID/prepare.py
+          echo "--- ANDROID/app icerigi ---"
+          ls -la ANDROID/app
+
+      - name: Onbellegi geri yukle
+        if: env.USE_CACHE == 'evet'
+        uses: actions/cache@v4
         with:
-          python-version: '3.11'
+          path: ANDROID/.p4a-cache
+          key: p4a-${{ runner.os }}-${{ env.ARCH }}-${{ github.run_id }}
+          restore-keys: |
+            p4a-${{ runner.os }}-${{ env.ARCH }}-
 
-      - name: Ortam degiskenleri
+      - name: APK derle (p4a docker)
+        env:
+          CACHE_MOUNT: ${{ env.USE_CACHE == 'evet' && '1' || '0' }}
+        run: bash ANDROID/build_apk_docker.sh
+
+      - name: APK topla
+        id: apk
         run: |
-          echo "ANDROIDAPI=31"  >> $GITHUB_ENV
-          echo "NDKAPI=21"      >> $GITHUB_ENV
-          echo "ARCH=arm64-v8a" >> $GITHUB_ENV
-          echo "P4A_RELEASE=1"  >> $GITHUB_ENV
-
-      - name: Sistem bagimliliklari
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends \
-            git zip unzip openjdk-17-jdk-headless ccache \
-            autoconf automake libtool pkg-config cmake \
-            libffi-dev libssl-dev zlib1g-dev libbz2-dev \
-            libncurses-dev libncursesw5-dev xz-utils libjpeg-dev \
-            python3-dev build-essential
-
-      - name: Kaynak dosyalari hazirla
-        run: python3 ANDROID/prepare.py
-
-      - name: python-for-android kur
-        run: |
-          pip install -q --upgrade pip wheel
-          pip install -q "cython==0.29.37" "python-for-android"
-          p4a --version
-
-      - name: Toolchain bootstrap (sdl2)
-        run: p4a bootstrap --sdl2 --arch=arm64-v8a
-
-      - name: Tarifleri derle
-        run: |
-          for r in libffi openssl setuptools six packaging pyparsing \
-                   cython kivy sdl2_image sdl2_mixer sdl2_ttf pillow numpy; do
-            echo "=== $r"
-            p4a build_recipes --sdl2 --arch=arm64-v8a "$r" || true
-          done
-
-      - name: APK derle
-        working-directory: ANDROID/app
-        run: |
-          p4a create \
-            --arch=arm64-v8a \
-            --package=com.katil5019.stickmanfighters \
-            --name="STICKMAN FIGHTERS" \
-            --version=1.4.0 \
-            --requirements=python3,pygame2,setuptools \
-            --launcher=main_mobile.py \
-            --release \
-            --permission=INTERNET \
-            --bootstrap=sdl2 \
-            .
-
-      - name: APK topla ve adini duzelt
-        run: |
+          set -euo pipefail
           mkdir -p APK_CIKTI
-          find "$HOME/.python-for-android/build" -name '*.apk' -exec cp {} APK_CIKTI/ \;
-          cd APK_CIKTI
-          apk=$(ls *.apk 2>/dev/null | head -n1)
-          if [ -z "$apk" ]; then echo "APK BULUNAMADI"; exit 1; fi
-          mv "$apk" "STICKMAN-FIGHTERS-1.4.0.apk"
-          ls -lh
+          apk=$(ls -1 ANDROID/app/dist/*.apk 2>/dev/null | head -n1 || true)
+          if [ -z "$apk" ]; then
+            echo "::error::APK bulunamadi"
+            ls -laR ANDROID/app/dist 2>/dev/null || true
+            exit 1
+          fi
+          cp "$apk" "APK_CIKTI/STICKMAN-FIGHTERS-1.4.0.apk"
+          ls -lh APK_CIKTI
+          echo "yol=$apk" >> $GITHUB_OUTPUT
 
-      - name: Releases'a yukle (site butonu calissin)
-        uses: softprops/action-gh-release@v2
+      - name: Onbellegi kaydet
+        if: always() && env.USE_CACHE == 'evet'
+        uses: actions/cache/save@v4
         with:
-          tag_name: v1.4.0
-          name: STICKMAN FIGHTERS 1.4.0
-          body: |
-            ## STICKMAN FIGHTERS 1.4.0
+          path: ANDROID/.p4a-cache
+          key: p4a-${{ runner.os }}-${{ env.ARCH }}-${{ github.run_id }}
 
-            | Platform | Dosya |
-            |---|---|
-            | PC (Windows) | `STICKMAN-FIGHTRS-1.4.0-PC.zip` |
-            | Telefon (Android) | `STICKMAN-FIGHTERS-1.4.0.apk` |
-          files: APK_CIKTI/STICKMAN-FIGHTERS-1.4.0.apk
-          fail_on_unmatched_files: false
-
-      - name: APK ekle (artifacts)
+      # ---------------------------------------------------------- artifact
+      - name: APK ekle (artifact)
         uses: actions/upload-artifact@v4
         with:
           name: STICKMAN-FIGHTERS-apk
           path: APK_CIKTI
           retention-days: 90
 
-      - name: Hata loglarini yukle
-        if: failure()
-        run: |
-          mkdir -p APK_CIKTI
-          find ANDROID -name '*.log' -exec tail -300 {} \; \
-            > APK_CIKTI/hata_logu.txt 2>/dev/null || true
-          ls -lh APK_CIKTI || true
-
-      - name: Log dosyasi ekle
-        if: failure()
-        uses: actions/upload-artifact@v4
+      # ---------------------------------------------------------- release
+      - name: Releases'a yukle
+        if: env.DO_RELEASE == 'evet'
+        uses: softprops/action-gh-release@v2
         with:
-          name: hata-loglari
-          path: APK_CIKTI/hata_logu.txt
+          tag_name: ${{ env.TAG }}
+          name: STICKMAN FIGHTERS 1.4.0
+          body: |
+            ## STICKMAN FIGHTERS 1.4.0
+
+            | Platform | Dosya |
+            |---|---|
+            | PC (Windows) | `STICKMAN-FIGHTERS-1.4.0-PC.zip` |
+            | Telefon (Android) | `STICKMAN-FIGHTERS-1.4.0.apk` |
+
+            **Telefon kurulumu:** APK'yi indir -> dosyaya dokun ->
+            "bilinmeyen kaynaklardan kur" iznini ver -> Kur.
+          files: APK_CIKTI/STICKMAN-FIGHTERS-1.4.0.apk
+          fail_on_unmatched_files: false
+
+      # ---------------------------------------------------------- tani
+      - name: Ozet yaz
+        if: always()
+        run: |
+          {
+            echo "### STICKMAN FIGHTERS - APK derleme ozeti"
+            echo ""
+            echo "- mimari : $ARCH"
+            echo "- onbellek: $USE_CACHE"
+            echo "- durum  : ${{ job.status }}"
+            echo ""
+            echo "### ANDROID/app/dist"
+            echo '```'
+            ls -la ANDROID/app/dist 2>/dev/null || echo "(yok)"
+            echo '```'
+          } >> $GITHUB_STEP_SUMMARY

@@ -61,8 +61,8 @@ Bilgisayarda WSL ile:
   wsl --install -d Ubuntu
   sonra Ubuntu icinde:
   cd /mnt/c/.../STIKMAN.FIGHTERS
-  bash ANDROID/build_apk.sh
-  (veya: bash ANDROID/build_docker.sh)
+  bash ANDROID/build_apk_docker.sh
+  
 
 ----------------------------------------------------------------------
 YOL 3 - TERMUX (ileri kullanicilar)

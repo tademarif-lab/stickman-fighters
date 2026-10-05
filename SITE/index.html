@@ -113,10 +113,11 @@
     <div class="tag">Minecraft temalı 2D stickman dövüş oyunu</div>
     <div class="badges">
       <div class="badge">Sürüm <b id="ver">1.4.0</b></div>
-      <div class="badge"><b>30</b> karakter sınıfı</div>
-      <div class="badge"><b>129</b> yetenek</div>
+      <div class="badge"><b>31</b> karakter sınıfı</div>
+      <div class="badge"><b>134</b> yetenek</div>
       <div class="badge">Online <b>4 kişi</b></div>
       <div class="badge">Android + PC</div>
+      <div class="badge">Güncelleme <b>5 Ekim 2026</b></div>
     </div>
   </header>
 
@@ -128,7 +129,7 @@
         kısayolu ve <b>KATİL5019 LAUNCHER</b> dahil.</div>
       <ul>
         <li>KATİL5019 LAUNCHER (PC + telefon sürümü)</li>
-        <li>30 karakter + 8 paket (Ruby ile satın al)</li>
+        <li>31 karakter + 8 paket (Ruby ile satın al)</li>
         <li>Zombi / Boss / Futbol / Lazer modları</li>
         <li>Online sunucu (aynı ağda 4 kişi)</li>
         <li>Kayıt sistemi (Ruby, paketler, karakterler)</li>
@@ -161,25 +162,39 @@
       </button>
       <div class="note"><b>Kurulum:</b> APK'yı indir → dokun → "bilinmeyen
         kaynaklardan kur" iznini ver → <b>Kur</b>.</div>
+      <div class="note" id="apkNot"><b>Not:</b> Düğme <span id="apkDurum">bağlantı
+        kontrol ediliyor</span>. APK GitHub Actions'ta (bulutta) derlenir;
+        bitince aynı adres otomatik çalışır.</div>
     </div>
   </div>
 
   <h2>Ne var içinde?</h2>
   <div class="grid3">
-    <div class="feat"><div class="n">30</div><h4>Karakter sınıfı</h4>
+    <div class="feat"><div class="n">31</div><h4>Karakter sınıfı</h4>
       <p>Vampir, Zombi, İskelet, Mutant, Zehir Kralı, Ateş Manyağı, Su Kralı,
-         Yıldırım Patronsu, Steve, Alex, Çelik Adam, Parazit, Şövalye, Okçu,
-         Cameraman, Speakerman, TV Man ve 13 tane daha.</p></div>
-    <div class="feat"><div class="n">129</div><h4>Yetenek</h4>
+         Yıldırım Patronsu, Steve, Alex, Builder, Şövalye, Okçu, Çelik Adam,
+         Parazit, Hırsız, Cameraman, Speakerman, TV Man ve 13 tane daha.</p></div>
+    <div class="feat"><div class="n">134</div><h4>Yetenek</h4>
       <p>Mermi, takip eden füze, zehir dalgası, lazer, minik dalga, ses dalgası,
-         su duvarı, kanca, tsunami, minyon çağırma, şarjlanan yay, dirilme…</p></div>
+         su duvarı, kanca, tsunami, blok duvar, TNT, minyon çağırma, şarjlanan
+         yay, dirilme…</p></div>
     <div class="feat"><div class="n">8</div><h4>Paket</h4>
-      <p>Ruby para birimiyle alınan paketler: Cansız Paket'ten (5 Ruby)
-         Skibidi Toilet'e (100 Ruby) kadar.</p></div>
+      <p>Ruby para birimiyle alınan paketler: Orta Çağ Savaşçıları'ndan (5.5
+         Ruby) Skibidi Toilet'e (100 Ruby) kadar.</p></div>
   </div>
 
-  <h2>Bağlantılar</h2>
-  <div class="links">
+  <h2>Online Mod (4 kişi)</h2>
+  <div class="feat">
+    <p>Sunucuyu <b>bir PC'de</b> çalıştır, arkadaşların o PC'nin IP adresiyle
+       bağlansın. <b>Kilitli oda</b> sistemi var: şifre koyarsan sadece şifreyi
+       bilen girer. Boş oyunculara sıra gelince <b>1v1 turnuva</b> başlar.</p>
+    <div class="links" style="margin-top:14px">
+      <a class="lnk" id="lnk-sunucu" href="#"><span>🖥</span> Sunucu Nasıl Açılır? (Rehber)</a>
+      <a class="lnk" id="lnk-online2" href="#"><span>📄</span> SUNUCU_BASLAT.bat (indir)</a>
+    </div>
+  </div>
+
+  <h2>Bağlantılar</h2>  <div class="links">
     <a class="lnk" id="lnk-repo" href="#"><span>▣</span> Kaynak Kodu (GitHub)</a>
     <a class="lnk" id="lnk-apk" href="#"><span>⬇</span> APK Derle (Actions)</a>
     <a class="lnk" id="lnk-rel" href="#"><span>◇</span> Tüm Sürümler (Releases)</a>
@@ -261,6 +276,8 @@ setHref("lnk-rel",    base + "/releases");
 setHref("lnk-rehber", site + "/APK_YAPIMI.md");
 setHref("lnk-mobil",  site + "/MOBIL_REHBERI.md");
 setHref("lnk-online", site + "/ONLINE_REHBERI.md");
+setHref("lnk-sunucu",  site + "/ONLINE_REHBERI.md");
+setHref("lnk-online2", base + "/raw/refs/heads/master/SUNUCU_BASLAT.bat");
 
 /* Yedek butonlari */
 var b2 = document.getElementById("dlpc2");
@@ -272,6 +289,17 @@ if(b3){ b3.onclick = function(){
   if(apkAlt){ location.href = apkAlt; }
   else { location.href = base + "/actions/workflows/android-apk.yml"; }
 };}
+
+/* APK hazır mı diye bak. GitHub CORS engellediği için
+   her zaman "bilinmiyor" döner ama en azından link çalışır durumda kalır. */
+(function(){
+  var d = document.getElementById("apkDurum");
+  if(!d) return;
+  fetch(apkUrl, {method:"HEAD", mode:"no-cors"})
+    .then(function(r){ d.textContent = "bağlantı hazır"; })
+    .catch(function(){ d.textContent = "hazırlanıyor"; });
+  setTimeout(function(){ d.textContent = "hazırlanıyor"; }, 4000);
+})();
 </script>
 </body>
 </html>
