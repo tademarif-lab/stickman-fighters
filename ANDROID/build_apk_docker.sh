@@ -32,6 +32,13 @@ CACHE_DIR="$AND_DIR/.p4a-cache"
 # p4a icinde python3 + p4a kurulmus sanal ortamin tam yolu
 P4A_VENV="/home/user/app/venv"
 
+# Android SDK / NDK yollari.
+# DIKKAT: p4a bu yollari OTOMATIK BULMAZ, mutlaka --sdk-dir/--ndk-dir
+# verilmesi gerekir (p4a'nin kendi CI'i da boyle yapar).
+# Kaynak: python-for-android/ci/makefiles/android.mk
+SDK_DIR="${SDK_DIR:-/home/user/.android/android-sdk}"
+NDK_DIR="${NDK_DIR:-/home/user/.android/android-ndk}"
+
 # ---------------------------------------------------------------- hazirlik
 if [ ! -d "$APP_DIR" ]; then
   echo "HATA: $APP_DIR yok. Once 'python3 ANDROID/prepare.py' calistir."
@@ -52,6 +59,8 @@ echo "  surum      : $VERSION"
 echo "  uygulama   : $APP_NAME"
 echo "  gerekenler : $REQUIREMENTS"
 echo "  giris       : $LAUNCHER"
+echo "  SDK         : $SDK_DIR"
+echo "  NDK         : $NDK_DIR"
 echo "  onbellek   : $([ "$CACHE_MOUNT" = "1" ] && echo acik || echo kapali)"
 echo "=============================================="
 echo
@@ -95,10 +104,25 @@ docker run --rm \
     python --version
     p4a --version
     java -version 2>&1 | head -1
+    echo
+    echo '--- SDK/NDK kontrolu ---'
+    for d in '$SDK_DIR' '$NDK_DIR'; do
+      if [ -d \"\$d\" ]; then
+        echo \"  VAR  \$d\"
+      else
+        echo \"  YOK  \$d   <-- p4a burayi bulamaz!\"
+        ls -la \$(dirname \$d) || true
+        exit 1
+      fi
+    done
+    echo \"  sdkmanager: \$(find '$SDK_DIR' -name sdkmanager -o -name avdmanager | head -3 | tr '\n' ' ')\"
+    echo
     echo '--- derleme ---'
     p4a apk \
       --arch='$ARCH' \
       --bootstrap=sdl2 \
+      --sdk-dir='$SDK_DIR' \
+      --ndk-dir='$NDK_DIR' \
       --release \
       --package='$PACKAGE' \
       --name='$APP_NAME' \
