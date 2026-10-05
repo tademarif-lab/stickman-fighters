@@ -1,0 +1,14 @@
+{
+  "ruby": 5.0,
+  "money": 0.0,
+  "packs": [],
+  "unlocked": [],
+  "levels": {},
+  "stats": {
+    "games": 0,
+    "wins": 0,
+    "kills": 0,
+    "bosses": 0
+  },
+  "best": {}
+}

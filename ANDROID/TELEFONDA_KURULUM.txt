@@ -1,0 +1,89 @@
+STICKMAN FIGHTERS - TELEFONDA KURULUM
+======================================
+
+DIKKAT: ANDROID klasoru kendisi KURILAMAZ. Icinde derleme
+dosyalari var, APK dosyasi yok. Once APK derlenmeli.
+
+Asagidaki 3 yoldan birini sec:
+
+----------------------------------------------------------------------
+YOL 1 - HEMEN OYNAMAK (5 dakika, APK gerekmez)  [EN KOLAY]
+----------------------------------------------------------------------
+Bu yol APK derlemeye gerek kalmaz. Pydroid ile oynarsin.
+
+1) Play Store'dan "Pydroid 3" uygulamasini indir
+2) Pydroid 3'u ac
+3) Menuden:  Pip  ->  pygame  ->  Install
+   (Pydroid 3 surumune gore "pygame-ce" ya da "pygame" gorunecek)
+4) Telefonunda STIKMAN.FIGHTERS klasorunun tamamini /sdcard/ icine koy
+   (tum .py dosyalari ayni klasorde olmali)
+5) Pydroid 3'te:  Dosya sec  ->  /sdcard/STIKMAN.FIGHTERS/main.py
+6) Sag alttaki yesil OK'a bas -> calistir
+
+  Gerekirse main.py yerine BU dosyayi calistir:
+      /sdcard/STIKMAN.FIGHTERS/MOBIL_CALISTIR.py
+
+Notlar:
+- Menulerde her yere dokunabilirsin
+- Dovuste sol alt joystick, sag alt 1 / 2 / 3 / U butonlari
+- Kayitlar SAVE klasorunde tutulur
+
+----------------------------------------------------------------------
+YOL 2 - GERCEK APK YAPMAK (GitHub, ucretsiz, 20-25 dk)
+----------------------------------------------------------------------
+Bu yol telefondan da yapilabilir (tarayici ile).
+
+1) Telefonun tarayicisinda github.com'a gir, UYE OL (ucretsiz)
+2) "New repository" olustur  (Private da olur)
+3) Repoya tum oyun dosyalarini yukle
+   DIKKAT: .github klasoru gizli olmamali!
+   (Bilgisayarda: bu klasoru gizli degilse normal yuklenir)
+4) Repo sayfasinda "Actions" sekmesine tikla
+5) Solda "ANDROID APK" isimli is akisini sec
+6) "Run workflow" butonuna bas  (yesil)
+7) 20-25 dakika bekle
+8) Is bitince sayfada "Artifacts" yazisi cikar
+9) "STICKMAN-FIGHTERS-apk" uzerine tikla, indir (zip)
+10) Zip'i ac, icindeki .apk dosyasini telefona indir
+11) .apk dosyasina dokun
+12) "Bilinen kaynaklardan yukleme" uyarisi cikar
+    -> Ayarlar'a git, izni ver
+    -> Geri don, "KUR" de
+13) Ana ekranda oyun belirir
+
+Bilgisayarda yapmak daha kolay:
+  1) Kodu GitHub'a yukle
+  2) Actions -> ANDROID APK -> Run workflow
+  3) 20-25 dk bekle
+  4) Artifacts -> indir
+
+Bilgisayarda WSL ile:
+  wsl --install -d Ubuntu
+  sonra Ubuntu icinde:
+  cd /mnt/c/.../STIKMAN.FIGHTERS
+  bash ANDROID/build_apk.sh
+  (veya: bash ANDROID/build_docker.sh)
+
+----------------------------------------------------------------------
+YOL 3 - TERMUX (ileri kullanicilar)
+----------------------------------------------------------------------
+1) Play Store'dan "Termux" indir
+2) Termux'u ac, su komutlari yaz:
+      pkg install python
+      pkg install python-pygame
+      cd /sdcard/STIKMAN.FIGHTERS
+      python main.py
+3) Oyun acilir
+
+======================================================================
+
+KONTROLLER (telefonda)
+  Sol alt  ->  joystick (sola / saga)
+  Sag alt  ->  1, 2, 3, U (ulti), ^ (zipla), v (egil)
+  Menu     ->  her yere dokun
+
+KAYIT (Ruby, paketler, karakterler)
+  /sdcard/STIKMAN.FIGHTERS/SAVE/oyun_kayit.json
+  Bu klasoru bilgisayara kopyalarsan ilerlemen tasinir.
+
+======================================================================

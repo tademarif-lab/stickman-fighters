@@ -1,0 +1,31 @@
+STICKMAN FIGHTERS - TELEFON KURULUMU
+====================================
+
+1) Bu klasoru telefona kopyala:
+     /sdcard/STIKMAN.FIGHTERS/
+
+2) Play Store'dan "Pydroid 3" indir
+
+3) Pydroid 3'te:
+     Pip  ->  pygame  ->  Install
+
+4) Dosya sec:
+     /sdcard/STIKMAN.FIGHTERS/MOBIL_CALISTIR.py
+
+5) Yesil OK'a bas.
+
+------
+
+Oyun acilmazsa:
+  - Pip icinde "pygame" yoksa "pygame-ce" kur
+  - Dosya sec ekranindan klasoru gorunuyorsa
+    MOBIL_CALISTIR.py dosyasini sec
+
+KONTROLLER
+  Sol alt   :  joystick (sola / saga)
+  Sag alt  :  1, 2, 3, U (ulti), ^ (zipla), v (egil)
+  Menu     :  her yere dokun
+
+KAYIT
+  SAVE/oyun_kayit.json
+  Bu klasoru bilgisayara kopyalarsan ilerlemen tasinir.
