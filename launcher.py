@@ -15,6 +15,12 @@ import sys
 import pygame
 
 BASE = os.path.dirname(os.path.abspath(__file__))
+
+# 7/24 acik indirme sitesi (GitHub Pages)
+SITE_URL = "https://KATIL5019.github.io/stickman-fighters/"
+# Telefon surumu APK adresi (GitHub Releases)
+APK_URL = ("https://github.com/KATIL5019/stickman-fighters/releases/"
+           "latest/download/STICKMAN-FIGHTERS-1.4.0.apk")
 if BASE not in sys.path:
     sys.path.insert(0, BASE)
 
@@ -72,7 +78,8 @@ class Launcher:
         self.prev_btn = pygame.Rect(596, 246, 54, 42)
         self.next_btn = pygame.Rect(858, 246, 54, 42)
         self.play_btn = pygame.Rect(596, 300, 316, 58)
-        self.quit_btn = pygame.Rect(596, 366, 316, 32)
+        self.phone_btn = pygame.Rect(596, 366, 152, 32)
+        self.quit_btn = pygame.Rect(760, 366, 152, 32)
         self.info_rect = pygame.Rect(24, 412, 888, 184)
         self._load_project()
 
@@ -192,6 +199,10 @@ class Launcher:
         pygame.draw.rect(self.scr, (104, 102, 112), self.quit_btn, 2, border_radius=3)
         self._text("KAPAT", self.quit_btn.center, 14, TXT)
 
+        pygame.draw.rect(self.scr, (74, 58, 104), self.phone_btn, border_radius=3)
+        pygame.draw.rect(self.scr, (168, 130, 220), self.phone_btn, 2, border_radius=3)
+        self._text("TELEFON S\u00dcR\u00dcM\u00dc", self.phone_btn.center, 13, TXT)
+
         # ---- alt: BİLGİ
         self._panel(self.info_rect, "BİLGİ")
         y = self.info_rect.y + 20
@@ -246,6 +257,20 @@ class Launcher:
             self.busy = False
             self.status = "HATA: %s" % e
 
+    def open_phone(self):
+        """Telefon surumu: siteyi ac (GitHub Pages) ."""
+        import webbrowser
+        self.status = "Telefon surumu icin site aciliyor..."
+        try:
+            webbrowser.open(SITE_URL, new=2)
+        except Exception:
+            try:
+                os.startfile(SITE_URL)
+            except Exception as e:
+                self.status = "Site acilamadi: %s" % e
+                return
+        self.status = "Sitede 'TELEFON SURUMU' butonuna bas (GitHub/APK)"
+
     def run(self):
         while True:
             self.clock.tick(60)
@@ -284,6 +309,8 @@ class Launcher:
                     elif self.quit_btn.collidepoint(mx, my):
                         pygame.quit()
                         sys.exit(0)
+                    elif self.phone_btn.collidepoint(mx, my):
+                        self.open_phone()
                     else:
                         for i, r in enumerate(self.rows):
                             if r.collidepoint(mx, my):

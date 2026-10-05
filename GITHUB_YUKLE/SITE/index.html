@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>STICKMAN FIGHTERS — İndir</title>
+<meta name="description" content="STICKMAN FIGHTERS — Minecraft temalı 2D stickman dövüş oyunu. PC ve Android sürümleri.">
+<meta name="theme-color" content="#0d1020">
+<link rel="icon" href="favicon.png">
+<style>
+  :root{
+    --bg:#0d1020; --bg2:#141a30; --card:#1a2140; --line:#2c3560;
+    --gold:#ffcd46; --txt:#e8e8f0; --dim:#9a98a8; --green:#5fc85f;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    background:
+      radial-gradient(1200px 600px at 50% -10%, #243060 0%, transparent 60%),
+      linear-gradient(180deg,var(--bg) 0%, var(--bg2) 100%);
+    background-attachment: fixed;
+    color:var(--txt);
+    font-family:"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;
+    min-height:100vh;padding:0 16px 60px;
+  }
+  .wrap{max-width:980px;margin:0 auto}
+
+  header{text-align:center;padding:46px 0 8px}
+  .logo{font-size:clamp(34px,9vw,64px);font-weight:900;letter-spacing:1px;line-height:1;
+        color:var(--gold);text-shadow:0 6px 0 #7a5a10,0 10px 26px rgba(0,0,0,.6)}
+  .logo2{font-size:clamp(26px,7vw,48px);font-weight:900;color:#fff;line-height:1.15}
+  .tag{color:var(--dim);font-size:15px;margin-top:14px}
+  .badges{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:16px}
+  .badge{border:1px solid var(--line);border-radius:999px;padding:5px 12px;font-size:12px;
+         color:var(--dim);background:rgba(255,255,255,.03)}
+  .badge b{color:var(--gold);font-weight:700}
+
+  h2{font-size:20px;margin:38px 0 14px;display:flex;align-items:center;gap:10px}
+  h2::before{content:"";width:5px;height:20px;background:var(--gold);border-radius:3px}
+
+  .cards{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:720px){.cards{grid-template-columns:1fr}}
+  .card{background:linear-gradient(180deg,var(--card) 0%,#161c36 100%);
+        border:2px solid var(--line);border-radius:16px;padding:22px;
+        display:flex;flex-direction:column;gap:12px;position:relative;overflow:hidden}
+  .card::after{content:"";position:absolute;inset:0;pointer-events:none;
+    background:radial-gradient(400px 200px at 80% -20%,rgba(255,205,70,.12),transparent 70%)}
+  .card.pc{border-color:#3c4a86}
+  .card.mobil{border-color:#6a4a86}
+  .card h3{font-size:22px;display:flex;align-items:center;gap:10px}
+  .ico{width:40px;height:40px;border-radius:10px;display:grid;place-items:center;font-size:22px;
+       background:rgba(255,255,255,.07);border:1px solid var(--line)}
+  .desc{color:var(--dim);font-size:14px;min-height:42px}
+  ul{list-style:none;font-size:14px;color:#cfd2e2;display:grid;gap:6px}
+  ul li::before{content:"▸";color:var(--gold);margin-right:8px}
+
+  .btn{display:block;text-align:center;text-decoration:none;font-weight:800;border-radius:12px;
+       padding:15px 18px;font-size:16px;transition:transform .12s ease,filter .12s ease;
+       margin-top:auto;border:0;cursor:pointer;width:100%;font-family:inherit}
+  .btn:active{transform:translateY(2px)}
+  .btn-pc{background:linear-gradient(180deg,#ffd76a,#e8ac1a);color:#2a1d00;box-shadow:0 6px 0 #8a5f00}
+  .btn-mobil{background:linear-gradient(180deg,#b98cff,#7d47d6);color:#fff;box-shadow:0 6px 0 #472a80}
+  .btn:hover{filter:brightness(1.06)}
+  .btn small{display:block;font-weight:600;opacity:.8;font-size:12px;margin-top:3px}
+  .btn.ghost{background:transparent;border:2px solid var(--line);color:var(--dim);
+             box-shadow:none;padding:10px 14px;font-size:13.5px;margin-top:8px}
+  .btn.ghost:hover{border-color:var(--gold);color:var(--txt)}
+  .btn.off{opacity:.5;filter:grayscale(.6)}
+
+  .note{font-size:12.5px;color:var(--dim);background:rgba(255,255,255,.04);
+        border:1px dashed var(--line);border-radius:10px;padding:12px 14px;margin-top:10px}
+  .note b{color:var(--gold)}
+
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  @media(max-width:720px){.grid3{grid-template-columns:1fr}}
+  .feat{background:rgba(255,255,255,.035);border:1px solid var(--line);border-radius:14px;padding:18px}
+  .feat .n{font-size:30px;font-weight:900;color:var(--gold);line-height:1}
+  .feat h4{margin:8px 0 6px;font-size:16px}
+  .feat p{color:var(--dim);font-size:13.5px;line-height:1.55}
+
+  .links{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+  @media(max-width:720px){.links{grid-template-columns:1fr}}
+  .lnk{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--txt);
+       background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:12px;
+       padding:14px 16px;font-size:14.5px;font-weight:600}
+  .lnk:hover{background:rgba(255,255,255,.08);border-color:var(--gold)}
+  .lnk span{color:var(--gold)}
+
+  .req{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px}
+  .req table{width:100%;border-collapse:collapse;font-size:14px}
+  .req td{padding:8px 4px;border-bottom:1px solid rgba(255,255,255,.06);vertical-align:top}
+  .req tr:last-child td{border-bottom:none}
+  .req td:first-child{color:var(--dim);width:190px}
+
+  footer{text-align:center;color:var(--dim);font-size:12.5px;margin-top:40px;line-height:1.8}
+  .status{display:inline-flex;align-items:center;gap:7px;color:var(--green);font-weight:700}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--green);
+       box-shadow:0 0 10px var(--green);animation:p 2s infinite}
+  @keyframes p{0%,100%{opacity:1}50%{opacity:.35}}
+
+  .cfg{background:#0a0d18;border:1px solid var(--line);border-radius:12px;
+       padding:14px 16px;margin:26px 0 0}
+  .cfg h4{font-size:13px;color:var(--gold);margin-bottom:8px;letter-spacing:.5px}
+  .cfg code{font-family:Consolas,monospace;font-size:12.5px;color:#9fe8a0;word-break:break-all}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="logo">STICKMAN</div>
+    <div class="logo2">FIGHTERS</div>
+    <div class="tag">Minecraft temalı 2D stickman dövüş oyunu</div>
+    <div class="badges">
+      <div class="badge">Sürüm <b id="ver">1.4.0</b></div>
+      <div class="badge"><b>30</b> karakter sınıfı</div>
+      <div class="badge"><b>129</b> yetenek</div>
+      <div class="badge">Online <b>4 kişi</b></div>
+      <div class="badge">Android + PC</div>
+    </div>
+  </header>
+
+  <h2>İndir</h2>
+  <div class="cards">
+    <div class="card pc">
+      <h3><span class="ico">💻</span> PC SÜRÜMÜ</h3>
+      <div class="desc">Windows 10/11 için tam kurulum. Kurulum sihirbazı, masaüstü
+        kısayolu ve <b>KATİL5019 LAUNCHER</b> dahil.</div>
+      <ul>
+        <li>KATİL5019 LAUNCHER (PC + telefon sürümü)</li>
+        <li>30 karakter + 8 paket (Ruby ile satın al)</li>
+        <li>Zombi / Boss / Futbol / Lazer modları</li>
+        <li>Online sunucu (aynı ağda 4 kişi)</li>
+        <li>Kayıt sistemi (Ruby, paketler, karakterler)</li>
+      </ul>
+      <a class="btn btn-pc" id="dlpc" href="#">
+        ⬇ PC SÜRÜMÜNÜ İNDİR <small>Windows • .zip</small>
+      </a>
+      <button class="btn ghost" id="dlpc2" type="button">
+        ↺ Yedek bağlantı
+      </button>
+      <div class="note"><b>Gereksinim:</b> Windows 10/11 + Python 3.11.</div>
+    </div>
+
+    <div class="card mobil">
+      <h3><span class="ico">📱</span> TELEFON SÜRÜMÜ</h3>
+      <div class="desc">Android telefon ve tablet için <b>APK</b>. GitHub'daki
+        derleme akışından indirilir, telefona kurulur.</div>
+      <ul>
+        <li>Gerçek Android uygulaması (.apk)</li>
+        <li>Sol alt joystick + 1/2/3/Ulti butonları</li>
+        <li>Yatay ekran, tam ekran</li>
+        <li>Aynı kayıt dosyası (PC ile taşınır)</li>
+        <li>Online mod da çalışır</li>
+      </ul>
+      <a class="btn btn-mobil" id="dlapk" href="#">
+        📲 TELEFON SÜRÜMÜNÜ AL <small>Android • .apk • GitHub</small>
+      </a>
+      <button class="btn ghost" id="dlapk2" type="button">
+        ↺ Yedek bağlantı
+      </button>
+      <div class="note"><b>Kurulum:</b> APK'yı indir → dokun → "bilinmeyen
+        kaynaklardan kur" iznini ver → <b>Kur</b>.</div>
+    </div>
+  </div>
+
+  <h2>Ne var içinde?</h2>
+  <div class="grid3">
+    <div class="feat"><div class="n">30</div><h4>Karakter sınıfı</h4>
+      <p>Vampir, Zombi, İskelet, Mutant, Zehir Kralı, Ateş Manyağı, Su Kralı,
+         Yıldırım Patronsu, Steve, Alex, Çelik Adam, Parazit, Şövalye, Okçu,
+         Cameraman, Speakerman, TV Man ve 13 tane daha.</p></div>
+    <div class="feat"><div class="n">129</div><h4>Yetenek</h4>
+      <p>Mermi, takip eden füze, zehir dalgası, lazer, minik dalga, ses dalgası,
+         su duvarı, kanca, tsunami, minyon çağırma, şarjlanan yay, dirilme…</p></div>
+    <div class="feat"><div class="n">8</div><h4>Paket</h4>
+      <p>Ruby para birimiyle alınan paketler: Cansız Paket'ten (5 Ruby)
+         Skibidi Toilet'e (100 Ruby) kadar.</p></div>
+  </div>
+
+  <h2>Bağlantılar</h2>
+  <div class="links">
+    <a class="lnk" id="lnk-repo" href="#"><span>▣</span> Kaynak Kodu (GitHub)</a>
+    <a class="lnk" id="lnk-apk" href="#"><span>⬇</span> APK Derle (Actions)</a>
+    <a class="lnk" id="lnk-rel" href="#"><span>◇</span> Tüm Sürümler (Releases)</a>
+    <a class="lnk" id="lnk-rehber" href="#"><span>✎</span> APK Rehberi</a>
+    <a class="lnk" id="lnk-mobil" href="#"><span>📖</span> Mobil Rehberi</a>
+    <a class="lnk" id="lnk-online" href="#"><span>🌐</span> Online Rehberi</a>
+  </div>
+
+  <h2>Sistem Gereksinimleri</h2>
+  <div class="req">
+    <table>
+      <tr><td>İşletim Sistemi</td><td>Windows 10/11 (PC) · Android 7.0+ (telefon)</td></tr>
+      <tr><td>Python</td><td>3.11 (PC sürümü için)</td></tr>
+      <tr><td>RAM</td><td>2 GB (PC) · 1.5 GB (Android)</td></tr>
+      <tr><td>Depolama</td><td>~3 MB (PC) · ~80 MB (APK)</td></tr>
+      <tr><td>Online</td><td>Aynı Wi-Fi / ağ (sunucu PC'de çalışır)</td></tr>
+    </table>
+  </div>
+
+  <div class="cfg" id="cfg" style="display:none">
+    <h4>⚠ İNDİRME BAĞLANTILARI HAZIR DEĞİL</h4>
+    Bağlantılar ayarlanmamış. Siteyi yayınlayan kişi şunu yapmalı:
+    <br><code>python SITE_HAZIRLA.py</code> → ardından
+    <code>OWNER</code> / <code>REPO</code> değerlerini gir.
+  </div>
+
+  <footer>
+    <div><span class="status"><i class="dot"></i> SİTE 7/24 AÇIK</span></div>
+    <div>Statik barındırma ile kesintisiz erişim</div>
+    <div style="margin-top:10px">STICKMAN FIGHTERS © KATİL5019</div>
+  </footer>
+</div>
+
+<script>
+/* ==========================================================
+   İNDİRME BAĞLANTILARI
+   ------------------------------------------------------------
+   python SITE_HAZIRLA.py  çalıştırınca otomatik dolar.
+   Elle de düzenleyebilirsin.
+   ========================================================== */
+var OWNER = "tademarif-lab";
+var REPO = "stickman-fighters";
+var TAG = "1.4.0";
+
+/* Site adresi (github.io veya pages.dev). Boş bırakılırsa tahmin edilir. */
+var SITE_URL = "";
+
+/* Yedek (yedek) bağlantılar — ana bağlantı çalışmazsa */
+var PC_YEDEK  = "";
+var APK_YEDEK = "";
+
+var base  = "https://github.com/" + OWNER + "/" + REPO;
+var rel   = base + "/releases/latest/download/";
+var guess = "https://" + OWNER + ".github.io/" + REPO;
+var site  = SITE_URL || guess;
+
+function setHref(id, url){
+  var a = document.getElementById(id);
+  if(a && url){ a.href = url; a.classList.remove("off"); }
+}
+function setBtn(id, url, label){
+  var a = document.getElementById(id);
+  if(a && url){ a.href = url; a.classList.remove("off"); return true; }
+  if(a && label){ a.classList.add("off"); a.onclick=function(e){e.preventDefault();};
+                  return false; }
+  return false;
+}
+
+var pcUrl   = rel + "STICKMAN-FIGHTERS-" + TAG + "-PC.zip";
+var apkUrl  = rel + "STICKMAN-FIGHTERS-" + TAG + ".apk";
+var pcAlt   = PC_YEDEK  || (site + "/indir/STICKMAN-FIGHTERS-" + TAG + "-PC.zip");
+var apkAlt  = APK_YEDEK || "";
+
+setBtn("dlpc",  pcUrl);
+setBtn("dlapk", apkUrl);
+setHref("lnk-repo",   base);
+setHref("lnk-apk",    base + "/actions/workflows/android-apk.yml");
+setHref("lnk-rel",    base + "/releases");
+setHref("lnk-rehber", site + "/APK_YAPIMI.md");
+setHref("lnk-mobil",  site + "/MOBIL_REHBERI.md");
+setHref("lnk-online", site + "/ONLINE_REHBERI.md");
+
+/* Yedek butonlari */
+var b2 = document.getElementById("dlpc2");
+if(b2){ b2.onclick = function(){
+  if(pcAlt){ location.href = pcAlt; } else { alert("Yedek baglanti yok."); }
+};}
+var b3 = document.getElementById("dlapk2");
+if(b3){ b3.onclick = function(){
+  if(apkAlt){ location.href = apkAlt; }
+  else { location.href = base + "/actions/workflows/android-apk.yml"; }
+};}
+</script>
+</body>
+</html>
