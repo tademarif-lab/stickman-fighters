@@ -93,10 +93,15 @@ else
 fi
 
 echo
-echo "=== DERLEME BASLADI (40-60 dakika surebilir) ==="
-# DIKKAT: p4a'da --launcher secenegi KALDIRILDI.
-# Giris noktasi, --private dizinindeki `main.py` dosyasidir.
-# prepare.py bu dosyayi main_mobile.py'den uretir.
+echo "--- p4a argumanlari ---"
+echo "  kaynak dizin  : . (--dir .)"
+echo "  giris noktasi : main.py  (--launcher bayragi)"
+echo
+# DIKKAT: p4a'da iki sey degisti:
+#  - `--launcher` artik BAYRAK (argumansiz). Eskiden dosya adi aliyordu.
+#    Giris noktasi `--private` dizinindeki `main.py` dosyasidir.
+#  - Sondaki konumsal `.` ARGUMANI KALDIRILDI; kaynak dizin
+#    `--dir` ile verilir.
 p4a apk \
   --arch="$ARCH" \
   --bootstrap=sdl2 \
@@ -105,14 +110,15 @@ p4a apk \
   --android-api="$API" \
   $LOCAL_FLAG \
   --private . \
+  --dir . \
+  --launcher \
   --release \
   --package="$PACKAGE" \
   --name="$APP_NAME" \
   --version="$VERSION" \
   --requirements="$REQUIREMENTS" \
   --permission=INTERNET \
-  --dist-name="STICKMAN-FIGHTERS-$VERSION" \
-  .
+  --dist-name="STICKMAN-FIGHTERS-$VERSION"
 
 echo
 echo "=== DERLEME BITTI ==="
