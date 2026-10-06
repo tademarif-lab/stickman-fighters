@@ -94,14 +94,15 @@ fi
 
 echo
 echo "--- p4a argumanlari ---"
-echo "  kaynak dizin  : . (--dir .)"
+echo "  kaynak dizin  : . (--private .)"
 echo "  giris noktasi : main.py  (--launcher bayragi)"
 echo
-# DIKKAT: p4a'da iki sey degisti:
+# DIKKAT: p4a argumanlari (guncel surum):
 #  - `--launcher` artik BAYRAK (argumansiz). Eskiden dosya adi aliyordu.
 #    Giris noktasi `--private` dizinindeki `main.py` dosyasidir.
-#  - Sondaki konumsal `.` ARGUMANI KALDIRILDI; kaynak dizin
-#    `--dir` ile verilir.
+#  - `--dir` p4a seviyesinde YOK; kaynak dizin `--private` ile verilir
+#    (`--dir` sadece bootstrap'un build.py'sine p4a tarafindan iletilir).
+#  - Sondaki konumsal `.` argumani da kaldirilmis.
 p4a apk \
   --arch="$ARCH" \
   --bootstrap=sdl2 \
@@ -110,7 +111,6 @@ p4a apk \
   --android-api="$API" \
   $LOCAL_FLAG \
   --private . \
-  --dir . \
   --launcher \
   --release \
   --package="$PACKAGE" \
