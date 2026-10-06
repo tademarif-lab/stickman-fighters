@@ -48,11 +48,13 @@ if [ ! -f "$APP_DIR/$LAUNCHER" ]; then
   echo "HATA: $APP_DIR/$LAUNCHER bulunamadi."
   exit 1
 fi
-if [ ! -d "$AND_DIR/local_recipes/python3" ]; then
-  echo "HATA: $AND_DIR/local_recipes/python3 yok."
-  echo "      (bu tarif pygame'in Python 3.12+ ile derlenmesini engeller)"
-  exit 1
-fi
+for r in python3 hostpython3; do
+  if [ ! -f "$AND_DIR/local_recipes/$r/__init__.py" ]; then
+    echo "HATA: $AND_DIR/local_recipes/$r/__init__.py yok."
+    echo "      (bu tarifler pygame'in Python 3.12+ ile derlenmesini engeller)"
+    exit 1
+  fi
+done
 
 echo "=============================================="
 echo " STICKMAN FIGHTERS - APK DERLEME"

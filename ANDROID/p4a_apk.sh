@@ -61,30 +61,32 @@ fi
 echo "  kullanilan API: $API"
 
 # ---------------------------------------------------------------------
-# YEREL TARIF: python3 surumunu 3.10'a sabitler
+# YEREL TARIF: python3 + hostpython3 surumunu 3.10'a sabitler
 # ---------------------------------------------------------------------
 # p4a varsayilan olarak Python 3.14 derliyor, ama pygame 2.1.0
 # Python 3.12+'da derlenemiyor (longintrepr.h kaldirilmis).
-# Yerel tarif python3 -> 3.10.14.
+# p4a ayrica python3 ile hostpython3 surumlerinin ayni olmasini zorunlu
+# tutuyor, bu yuzden IKISI DE 3.10.14'e cekiliyor.
 LOCAL_RECIPES="./local_recipes"
-if [ -d "$LOCAL_RECIPES/python3" ]; then
+if [ -d "$LOCAL_RECIPES/python3" ] && [ -d "$LOCAL_RECIPES/hostpython3" ]; then
   echo
-  echo "--- yerel tarif (python3 3.10.14) ---"
-  # p4a'nin kendi yama klasorunu kopyala (recipe_dir orijinale cevriliyor
-  # ama --local-recipes verildiginde p4a once yerel dizini arar)
-  P4A_SRC=$(python -c "import os, pythonforandroid.recipes.python3 as m; print(os.path.dirname(os.path.abspath(m.__file__)))")
-  echo "  p4a kaynak: $P4A_SRC"
-  if [ -d "$P4A_SRC/patches" ]; then
-    cp -r "$P4A_SRC/patches" "$LOCAL_RECIPES/python3/" 2>/dev/null || true
-    echo "  yamalar kopyalandi: $(ls "$LOCAL_RECIPES/python3/patches" | wc -l) adet"
-  else
-    echo "  UYARI: yama klasoru bulunamadi ($P4A_SRC/patches)"
-  fi
+  echo "--- yerel tarif (python3 + hostpython3 -> 3.10.14) ---"
+  # p4a'nin kendi yama klasorlerini kopyala (recipe_dir orijinale
+  # cevriliyor ama --local-recipes verildiginde p4a once yerel dizini arar)
+  for r in python3 hostpython3; do
+    SRC=$(python -c "import os, pythonforandroid.recipes.$r as m; print(os.path.dirname(os.path.abspath(m.__file__)))" 2>/dev/null)
+    if [ -n "$SRC" ] && [ -d "$SRC/patches" ]; then
+      cp -r "$SRC/patches" "$LOCAL_RECIPES/$r/" 2>/dev/null || true
+      echo "  $r: yama kopyalandi ($(ls "$LOCAL_RECIPES/$r/patches" | wc -l) adet)"
+    else
+      echo "  $r: yama klasoru yok (p4a kaynak=$SRC)"
+    fi
+  done
   LOCAL_FLAG="--local-recipes=$LOCAL_RECIPES"
 else
   echo
-  echo "UYARI: $LOCAL_RECIPES/python3 yok, p4a varsayilan Python surumunu kullanir"
-  echo "       (pygame derlenemeyebilir)"
+  echo "UYARI: $LOCAL_RECIPES/python3 veya hostpython3 eksik,"
+  echo "       p4a varsayilan Python surumunu kullanir (pygame derlenemez)"
   LOCAL_FLAG=""
 fi
 
