@@ -91,49 +91,33 @@ echo ">> APK derleniyor (30-45 dakika surebilir)..."
 echo ">> Takilirsa: https://github.com/kivy/python-for-android/releases"
 echo
 
+# p4a komutu ayri dosyada: ANDROID/p4a_apk.sh
+# Boylece ic ice tirnak gommeden, sozdizimi yerinde dogrulanabilir.
+P4A_SH="$AND_DIR/p4a_apk.sh"
+if [ ! -f "$P4A_SH" ]; then
+  echo "HATA: $P4A_SH bulunamadi"
+  exit 1
+fi
+# konteynerde de erisilebilir olmasi icin app dizinine kopyala
+cp -f "$P4A_SH" "$APP_DIR/p4a_apk.sh"
+chmod a+rx "$APP_DIR/p4a_apk.sh"
+
 docker run --rm \
   ${MOUNT[@]+"${MOUNT[@]}"} \
   -v "$APP_DIR:/home/user/app/work" \
   -w /home/user/app/work \
   -e LANG=en_US.UTF-8 \
+  -e ARCH="$ARCH" \
+  -e PACKAGE="$PACKAGE" \
+  -e APP_NAME="$APP_NAME" \
+  -e VERSION="$VERSION" \
+  -e REQUIREMENTS="$REQUIREMENTS" \
+  -e LAUNCHER="$LAUNCHER" \
+  -e SDK_DIR="$SDK_DIR" \
+  -e NDK_DIR="$NDK_DIR" \
+  -e P4A_VENV="$P4A_VENV" \
   "$IMG" \
-  bash -lc "
-    set -euo pipefail
-    . $P4A_VENV/bin/activate
-    echo '--- konteyner icinde ---'
-    python --version
-    p4a --version
-    java -version 2>&1 | head -1
-    echo
-    echo '--- SDK/NDK kontrolu ---'
-    for d in '$SDK_DIR' '$NDK_DIR'; do
-      if [ -d \"\$d\" ]; then
-        echo \"  VAR  \$d\"
-      else
-        echo \"  YOK  \$d   <-- p4a burayi bulamaz!\"
-        ls -la \$(dirname \$d) || true
-        exit 1
-      fi
-    done
-    echo \"  sdkmanager: \$(find '$SDK_DIR' -name sdkmanager -o -name avdmanager | head -3 | tr '\n' ' ')\"
-    echo
-    echo '--- derleme ---'
-    p4a apk \
-      --arch='$ARCH' \
-      --bootstrap=sdl2 \
-      --sdk-dir='$SDK_DIR' \
-      --ndk-dir='$NDK_DIR' \
-      --release \
-      --package='$PACKAGE' \
-      --name='$APP_NAME' \
-      --version='$VERSION' \
-      --requirements='$REQUIREMENTS' \
-      --launcher='$LAUNCHER' \
-      --permission=INTERNET \
-      --dist-name=STICKMAN-FIGHTERS-$VERSION \
-      .
-    echo '--- bitti ---'
-  "
+  bash /home/user/app/work/p4a_apk.sh
 
 # ---------------------------------------------------------------- sonuc
 APK_DIR="$APP_DIR/dist"
