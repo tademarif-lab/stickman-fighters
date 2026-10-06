@@ -28,6 +28,8 @@ REQUIREMENTS="${REQUIREMENTS:-python3,pygame,setuptools}"
 SDK_DIR="${SDK_DIR:-/home/user/.android/android-sdk}"
 NDK_DIR="${NDK_DIR:-/home/user/.android/android-ndk}"
 P4A_VENV="${P4A_VENV:-/home/user/app/venv}"
+LOCAL_RECIPES="${LOCAL_RECIPES:-/home/user/app/andtools/local_recipes}"
+KEYSTORE="${KEYSTORE:-/home/user/app/andtools/uygulama.keystore}"
 
 echo "--- ortam ---"
 # shellcheck disable=SC1090
@@ -69,7 +71,8 @@ echo "  kullanilan API: $API"
 # Python 3.12+'da derlenemiyor (longintrepr.h kaldirilmis).
 # p4a ayrica python3 ile hostpython3 surumlerinin ayni olmasini zorunlu
 # tutuyor, bu yuzden IKISI DE 3.10.14'e cekiliyor.
-LOCAL_RECIPES="./local_recipes"
+# LOCAL_RECIPES ortam degiskeniyle gelir (ANDROID/ salt-okunur baglanir,
+# bu yuzden app dizinine kopyalanmaz -> APK'ya girmez).
 if [ -d "$LOCAL_RECIPES/python3" ] && [ -d "$LOCAL_RECIPES/hostpython3" ]; then
   echo
   echo "--- yerel tarif (python3 + hostpython3 -> 3.10.14) ---"
@@ -84,12 +87,10 @@ if [ -d "$LOCAL_RECIPES/python3" ] && [ -d "$LOCAL_RECIPES/hostpython3" ]; then
       echo "  $r: p4a tarifi bulunamadi ($SRC)"
     fi
   done
-  LOCAL_FLAG="--local-recipes=$LOCAL_RECIPES"
 else
   echo
   echo "UYARI: $LOCAL_RECIPES/python3 veya hostpython3 eksik,"
   echo "       p4a varsayilan Python surumunu kullanir (pygame derlenemez)"
-  LOCAL_FLAG=""
 fi
 
 echo
@@ -105,7 +106,6 @@ echo
 #
 # NOT: bu anahtar oyunun kimligini belgeler, gizli bir sir degildir
 # (zaten APK'nin icinde imza olarak bulunur).
-KEYSTORE="${KEYSTORE:-/home/user/app/work/uygulama.keystore}"
 KEYSTORE_PW="${KEYSTORE_PW:-katil5019}"
 KEY_ALIAS="${KEY_ALIAS:-stickman}"
 
@@ -119,28 +119,39 @@ echo "  dosya : $KEYSTORE"
 echo "  alias : $KEY_ALIAS"
 keytool -list -keystore "$KEYSTORE" -storepass "$KEYSTORE_PW" 2>&1 \
   | grep -iE "alias|entry|valid" | head -4 || true
-SIGN_ARGS="--keystore=$KEYSTORE --signkey=$KEY_ALIAS --keystorepw=$KEYSTORE_PW --signkeypw=$KEYSTORE_PW"
 
 echo
-echo "=== DERLEME BASLADI (40-120 dakika surebilir) ==="
+echo "=== DERLEME BASLADI (10-120 dakika surebilir) ==="
 # DIKKAT: p4a argumanlari (guncel surum):
 #  - `--launcher` artik BAYRAK (argumansiz). Giris noktasi
 #    `--private` dizinindeki `main.py` dosyasidir.
 #  - `--dir` p4a seviyesinde YOK; kaynak dizin `--private` ile verilir
 #    (`--dir` sadece bootstrap'un build.py'sine p4a tarafindan iletilir).
 #  - Sondaki konumsal `.` argumani da kaldirilmis.
-#  - IMBALAMA: --keystore / --signkey / --keystorepw / --signkeypw
+#  - IMBALAMA: --keystore/--signkey/--keystorepw/--signkeypw p4a'ya
+#    verilir; p4a bunlari P4A_RELEASE_* ortam degiskenlerine cevirip
+#    gradle'a gecirir.
+#  - `--sign` ise bootstrap'un KENDI build.py'sine ait bayrak. Gradle
+#    sablonu imzalama blokunu `{% if args.sign %}` ile yaziyor:
+#        build.tmpl.gradle:54  {% if args.sign -%} signingConfigs {...}
+#        build.tmpl.gradle:78  release { signingConfig signingConfigs.release }
+#    p4a bu bayragi OTOMATIK GEÇIRMEZ; `unknown_args` sayesinde dogrudan
+#    bootstrap'a ulasir. YOKSA APK "IMZASIZ" uretilir, Android KURMAZ.
 p4a apk \
   --arch="$ARCH" \
   --bootstrap=sdl2 \
   --sdk-dir="$SDK_DIR" \
   --ndk-dir="$NDK_DIR" \
   --android-api="$API" \
-  $LOCAL_FLAG \
+  --local-recipes="$LOCAL_RECIPES" \
   --private . \
   --launcher \
   --release \
-  $SIGN_ARGS \
+  --sign \
+  --keystore="$KEYSTORE" \
+  --signkey="$KEY_ALIAS" \
+  --keystorepw="$KEYSTORE_PW" \
+  --signkeypw="$KEYSTORE_PW" \
   --package="$PACKAGE" \
   --name="$APP_NAME" \
   --version="$VERSION" \

@@ -111,30 +111,22 @@ echo
 
 # p4a komutu ayri dosyada: ANDROID/p4a_apk.sh
 # Boylece ic ice tirnak gommeden, sozdizimi yerinde dogrulanabilir.
+#
+# ONEMLI: ANDROID/ dizini konteynere SALT-OKUNUR baglanir ve app
+# dizinine KOPYALANMAZ. Boylece p4a_apk.sh, local_recipes/ ve
+# keystore APK'nin icine (private.tar) girmez.
 P4A_SH="$AND_DIR/p4a_apk.sh"
 if [ ! -f "$P4A_SH" ]; then
   echo "HATA: $P4A_SH bulunamadi"
   exit 1
 fi
-# konteynerde de erisilebilir olmasi icin app dizinine kopyala
-cp -f "$P4A_SH" "$APP_DIR/p4a_apk.sh"
-chmod a+rx "$APP_DIR/p4a_apk.sh"
 
-# yerel tarifler (python3 3.10 sabitlemesi) de kopyalanir
-rm -rf "$APP_DIR/local_recipes"
-cp -r "$AND_DIR/local_recipes" "$APP_DIR/local_recipes"
-find "$APP_DIR/local_recipes" -name '__pycache__' -type d -exec rm -rf {} + 2>/dev/null || true
-chmod -R a+rwX "$APP_DIR/local_recipes"
-echo ">> yerel tarifler kopyalandi:" $(ls "$APP_DIR/local_recipes")
-
-# imza anahtari kopyalanir (p4a calisma dizininden okuyor)
-cp -f "$KEYSTORE" "$APP_DIR/uygulama.keystore"
-chmod a+rw "$APP_DIR/uygulama.keystore"
-echo ">> keystore kopyalandi"
+TOOLS="/home/user/app/andtools"
 
 docker run --rm \
   ${MOUNT[@]+"${MOUNT[@]}"} \
   -v "$APP_DIR:/home/user/app/work" \
+  -v "$AND_DIR:$TOOLS:ro" \
   -w /home/user/app/work \
   -e LANG=en_US.UTF-8 \
   -e ARCH="$ARCH" \
@@ -145,8 +137,10 @@ docker run --rm \
   -e SDK_DIR="$SDK_DIR" \
   -e NDK_DIR="$NDK_DIR" \
   -e P4A_VENV="$P4A_VENV" \
+  -e LOCAL_RECIPES="$TOOLS/local_recipes" \
+  -e KEYSTORE="$KEYSTORE" \
   "$IMG" \
-  bash /home/user/app/work/p4a_apk.sh
+  bash "$TOOLS/p4a_apk.sh"
 
 # ---------------------------------------------------------------- sonuc
 # p4a APK'yi `dist/` DEGIL, calisma dizininin KOKUNE kopyalar.
