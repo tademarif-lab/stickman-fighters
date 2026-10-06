@@ -55,6 +55,17 @@ for r in python3 hostpython3; do
     exit 1
   fi
 done
+# imza anahtari: ayni imzali APK uretebilmek icin sabit olmali
+KEYSTORE="$AND_DIR/uygulama.keystore"
+if [ ! -f "$KEYSTORE" ]; then
+  echo "HATA: $KEYSTORE yok."
+  echo "      Repoda olmali; yoksa APK imzasiz uretilir ve telefona kurulamaz."
+  echo "      Olusturma:  keytool -genkeypair -v -keystore uygulama.keystore \\"
+  echo "                  -storepass katil5019 -keypass katil5019 -alias stickman \\"
+  echo "                  -keyalg RSA -keysize 2048 -validity 10000 \\"
+  echo "                  -dname 'CN=STICKMAN FIGHTERS, O=KATIL5019, C=TR'"
+  exit 1
+fi
 
 echo "=============================================="
 echo " STICKMAN FIGHTERS - APK DERLEME"
@@ -116,6 +127,11 @@ find "$APP_DIR/local_recipes" -name '__pycache__' -type d -exec rm -rf {} + 2>/d
 chmod -R a+rwX "$APP_DIR/local_recipes"
 echo ">> yerel tarifler kopyalandi:" $(ls "$APP_DIR/local_recipes")
 
+# imza anahtari kopyalanir (p4a calisma dizininden okuyor)
+cp -f "$KEYSTORE" "$APP_DIR/uygulama.keystore"
+chmod a+rw "$APP_DIR/uygulama.keystore"
+echo ">> keystore kopyalandi"
+
 docker run --rm \
   ${MOUNT[@]+"${MOUNT[@]}"} \
   -v "$APP_DIR:/home/user/app/work" \
@@ -133,19 +149,41 @@ docker run --rm \
   bash /home/user/app/work/p4a_apk.sh
 
 # ---------------------------------------------------------------- sonuc
-APK_DIR="$APP_DIR/dist"
+# p4a APK'yi `dist/` DEGIL, calisma dizininin KOKUNE kopyalar.
+# (log: "# Android package renamed to ... .apk" -> cp ... -> work dir)
+# Yine de her iki yeri de kontrol ediyoruz.
+APK=""
+for d in "$APP_DIR" "$APP_DIR/dist"; do
+  if ls "$d"/*.apk >/dev/null 2>&1; then
+    a=$(ls -1 "$d"/*.apk | head -n1)
+    APK="$a"
+    break
+  fi
+done
+
 echo
 echo "=============================================="
-if ls "$APK_DIR"/*.apk >/dev/null 2>&1; then
+if [ -n "$APK" ]; then
   echo " DERLEME BASARILI"
   echo "=============================================="
-  ls -lh "$APK_DIR"/*.apk
+  ls -lh "$APK"
   echo
-  echo "APK: $APK_DIR"
-  cp -f "$APK_DIR"/*.apk "$AND_DIR/../APK_CIKTI_STICKMAN-FIGHTERS.apk" 2>/dev/null || true
+  echo "APK: $APK"
+  mkdir -p "$AND_DIR/../APK_CIKTI"
+  cp -f "$APK" "$AND_DIR/../APK_CIKTI/STICKMAN-FIGHTERS-$VERSION.apk"
+  echo "Kopya: $AND_DIR/../APK_CIKTI/STICKMAN-FIGHTERS-$VERSION.apk"
+  # imzali mi kontrol et
+  if ls "$AND_DIR/../APK_CIKTI"/*.keystore >/dev/null 2>&1; then
+    echo "Keystore: $AND_DIR/../APK_CIKTI/*.keystore (sonraki derlemeler ayni imzayi kullanir)"
+  fi
 else
   echo " DERLEME BASARISIZ - APK bulunamadi"
   echo "=============================================="
-  echo "Kontrol: ANDROID/app/dist/ ve yukari taraftaki hata mesaji"
+  echo "Aranan yerler:"
+  echo "  $APP_DIR"
+  echo "  $APP_DIR/dist"
+  echo
+  echo "Mevcut dosyalar:"
+  ls -la "$APP_DIR" 2>/dev/null | head -30 || true
   exit 1
 fi

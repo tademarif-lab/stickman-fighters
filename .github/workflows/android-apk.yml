@@ -72,12 +72,21 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p APK_CIKTI
-          apk=$(ls -1 ANDROID/app/dist/*.apk 2>/dev/null | head -n1 || true)
+          # p4a APK'yi dist/ degil, app dizininin KOKUNE kopyalar.
+          # Yine de her iki yeri de ara.
+          apk=""
+          for d in ANDROID/app ANDROID/app/dist; do
+            if ls "$d"/*.apk >/dev/null 2>&1; then
+              apk=$(ls -1 "$d"/*.apk | head -n1)
+              break
+            fi
+          done
           if [ -z "$apk" ]; then
             echo "::error::APK bulunamadi"
-            ls -laR ANDROID/app/dist 2>/dev/null || true
+            ls -la ANDROID/app | head -30 || true
             exit 1
           fi
+          echo "bulunan: $apk"
           cp "$apk" "APK_CIKTI/STICKMAN-FIGHTERS-1.4.0.apk"
           ls -lh APK_CIKTI
           echo "yol=$apk" >> $GITHUB_OUTPUT
@@ -128,8 +137,13 @@ jobs:
             echo "- onbellek: $USE_CACHE"
             echo "- durum  : ${{ job.status }}"
             echo ""
-            echo "### ANDROID/app/dist"
+            echo "### APK"
             echo '```'
-            ls -la ANDROID/app/dist 2>/dev/null || echo "(yok)"
+            ls -la APK_CIKTI 2>/dev/null || echo "(yok)"
+            echo '```'
+            echo ""
+            echo "### ANDROID/app (ilk 20)"
+            echo '```'
+            ls -la ANDROID/app 2>/dev/null | head -20 || echo "(yok)"
             echo '```'
           } >> $GITHUB_STEP_SUMMARY

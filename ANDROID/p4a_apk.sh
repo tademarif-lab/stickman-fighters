@@ -93,16 +93,43 @@ else
 fi
 
 echo
-echo "--- p4a argumanlari ---"
-echo "  kaynak dizin  : . (--private .)"
-echo "  giris noktasi : main.py  (--launcher bayragi)"
+# ---------------------------------------------------------------------
+# IMRALA
+# ---------------------------------------------------------------------
+# --release verilince p4a imzasiz APK uretir
+# ("...-release-unsigned.apk") ve Android kurulumunu REDDEDER.
+#
+# Imza anahtari (keystore) repoda SABILIR: ANDROID/uygulama.keystore
+# Boylece her derlemede ayni imza kullanilir ve kullanicilar uygulamayi
+# GUNCELLEYEBILIR (farkli imza = "uygulama zaten yuklu" hatasi verir).
+#
+# NOT: bu anahtar oyunun kimligini belgeler, gizli bir sir degildir
+# (zaten APK'nin icinde imza olarak bulunur).
+KEYSTORE="${KEYSTORE:-/home/user/app/work/uygulama.keystore}"
+KEYSTORE_PW="${KEYSTORE_PW:-katil5019}"
+KEY_ALIAS="${KEY_ALIAS:-stickman}"
+
+if [ ! -f "$KEYSTORE" ]; then
+  echo "HATA: keystore bulunamadi: $KEYSTORE"
+  echo "      (repoda ANDROID/uygulama.keystore olmali)"
+  exit 1
+fi
+echo "--- keystore ---"
+echo "  dosya : $KEYSTORE"
+echo "  alias : $KEY_ALIAS"
+keytool -list -keystore "$KEYSTORE" -storepass "$KEYSTORE_PW" 2>&1 \
+  | grep -iE "alias|entry|valid" | head -4 || true
+SIGN_ARGS="--keystore=$KEYSTORE --signkey=$KEY_ALIAS --keystorepw=$KEYSTORE_PW --signkeypw=$KEYSTORE_PW"
+
 echo
+echo "=== DERLEME BASLADI (40-120 dakika surebilir) ==="
 # DIKKAT: p4a argumanlari (guncel surum):
-#  - `--launcher` artik BAYRAK (argumansiz). Eskiden dosya adi aliyordu.
-#    Giris noktasi `--private` dizinindeki `main.py` dosyasidir.
+#  - `--launcher` artik BAYRAK (argumansiz). Giris noktasi
+#    `--private` dizinindeki `main.py` dosyasidir.
 #  - `--dir` p4a seviyesinde YOK; kaynak dizin `--private` ile verilir
 #    (`--dir` sadece bootstrap'un build.py'sine p4a tarafindan iletilir).
 #  - Sondaki konumsal `.` argumani da kaldirilmis.
+#  - IMBALAMA: --keystore / --signkey / --keystorepw / --signkeypw
 p4a apk \
   --arch="$ARCH" \
   --bootstrap=sdl2 \
@@ -113,6 +140,7 @@ p4a apk \
   --private . \
   --launcher \
   --release \
+  $SIGN_ARGS \
   --package="$PACKAGE" \
   --name="$APP_NAME" \
   --version="$VERSION" \
@@ -122,4 +150,6 @@ p4a apk \
 
 echo
 echo "=== DERLEME BITTI ==="
-ls -la ./dist 2>/dev/null || echo "(dist klasoru yok)"
+echo "--- uretilen APK dosyalari ---"
+find . -maxdepth 3 -name '*.apk' 2>/dev/null | head -10
+ls -la ./*.apk ./dist/*.apk 2>/dev/null || echo "(apk listelenemedi)"
