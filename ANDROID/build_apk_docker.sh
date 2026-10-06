@@ -48,6 +48,11 @@ if [ ! -f "$APP_DIR/$LAUNCHER" ]; then
   echo "HATA: $APP_DIR/$LAUNCHER bulunamadi."
   exit 1
 fi
+if [ ! -d "$AND_DIR/local_recipes/python3" ]; then
+  echo "HATA: $AND_DIR/local_recipes/python3 yok."
+  echo "      (bu tarif pygame'in Python 3.12+ ile derlenmesini engeller)"
+  exit 1
+fi
 
 echo "=============================================="
 echo " STICKMAN FIGHTERS - APK DERLEME"
@@ -101,6 +106,13 @@ fi
 # konteynerde de erisilebilir olmasi icin app dizinine kopyala
 cp -f "$P4A_SH" "$APP_DIR/p4a_apk.sh"
 chmod a+rx "$APP_DIR/p4a_apk.sh"
+
+# yerel tarifler (python3 3.10 sabitlemesi) de kopyalanir
+rm -rf "$APP_DIR/local_recipes"
+cp -r "$AND_DIR/local_recipes" "$APP_DIR/local_recipes"
+find "$APP_DIR/local_recipes" -name '__pycache__' -type d -exec rm -rf {} + 2>/dev/null || true
+chmod -R a+rwX "$APP_DIR/local_recipes"
+echo ">> yerel tarifler kopyalandi:" $(ls "$APP_DIR/local_recipes")
 
 docker run --rm \
   ${MOUNT[@]+"${MOUNT[@]}"} \

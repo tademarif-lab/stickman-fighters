@@ -60,6 +60,34 @@ if [ -z "$API" ]; then
 fi
 echo "  kullanilan API: $API"
 
+# ---------------------------------------------------------------------
+# YEREL TARIF: python3 surumunu 3.10'a sabitler
+# ---------------------------------------------------------------------
+# p4a varsayilan olarak Python 3.14 derliyor, ama pygame 2.1.0
+# Python 3.12+'da derlenemiyor (longintrepr.h kaldirilmis).
+# Yerel tarif python3 -> 3.10.14.
+LOCAL_RECIPES="./local_recipes"
+if [ -d "$LOCAL_RECIPES/python3" ]; then
+  echo
+  echo "--- yerel tarif (python3 3.10.14) ---"
+  # p4a'nin kendi yama klasorunu kopyala (recipe_dir orijinale cevriliyor
+  # ama --local-recipes verildiginde p4a once yerel dizini arar)
+  P4A_SRC=$(python -c "import os, pythonforandroid.recipes.python3 as m; print(os.path.dirname(os.path.abspath(m.__file__)))")
+  echo "  p4a kaynak: $P4A_SRC"
+  if [ -d "$P4A_SRC/patches" ]; then
+    cp -r "$P4A_SRC/patches" "$LOCAL_RECIPES/python3/" 2>/dev/null || true
+    echo "  yamalar kopyalandi: $(ls "$LOCAL_RECIPES/python3/patches" | wc -l) adet"
+  else
+    echo "  UYARI: yama klasoru bulunamadi ($P4A_SRC/patches)"
+  fi
+  LOCAL_FLAG="--local-recipes=$LOCAL_RECIPES"
+else
+  echo
+  echo "UYARI: $LOCAL_RECIPES/python3 yok, p4a varsayilan Python surumunu kullanir"
+  echo "       (pygame derlenemeyebilir)"
+  LOCAL_FLAG=""
+fi
+
 echo
 echo "=== DERLEME BASLADI (40-60 dakika surebilir) ==="
 p4a apk \
@@ -68,6 +96,7 @@ p4a apk \
   --sdk-dir="$SDK_DIR" \
   --ndk-dir="$NDK_DIR" \
   --android-api="$API" \
+  $LOCAL_FLAG \
   --release \
   --package="$PACKAGE" \
   --name="$APP_NAME" \
