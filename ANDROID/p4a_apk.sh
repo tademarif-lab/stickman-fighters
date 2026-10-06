@@ -164,3 +164,78 @@ echo "=== DERLEME BITTI ==="
 echo "--- uretilen APK dosyalari ---"
 find . -maxdepth 3 -name '*.apk' 2>/dev/null | head -10
 ls -la ./*.apk ./dist/*.apk 2>/dev/null || echo "(apk listelenemedi)"
+
+# ---------------------------------------------------------------------
+# IMBALAMA KONTROLU
+# ---------------------------------------------------------------------
+# p4a'nin `--sign` bayragi bootstrap'un build.py'sine gecer ve gradle
+# sablonunu yeniden yazar. AMA bootstrap onbellekten geliyorsa
+# (p4a-cache) sablon YENIDEN YAZILMAZ ve APK imzasiz kalir.
+# Bu yuzden emin olmak icin APK'yi burada KENDIMIZ imzalariz.
+#
+# DIKKAT: Android 7+ (minApi 24) icin v1 (JAR) imzasi YETMEZ,
+# v2/v3 (APK Signing Block) gerekir. Bu yuzden apksigner kullanilir
+# (build-tools icinde gelir). jarsigner TEK BASINA yetmez.
+echo
+echo "=== IMBALAMA KONTROLU ==="
+
+APK_OUT=""
+for d in . ./dist; do
+  a=$(ls -1 "$d"/*.apk 2>/dev/null | head -n1)
+  if [ -n "$a" ]; then APK_OUT="$a"; break; fi
+done
+
+if [ -z "$APK_OUT" ]; then
+  echo "HATA: APK dosyasi bulunamadi"
+  exit 1
+fi
+echo "  APK: $APK_OUT ($(stat -c%s "$APK_OUT") bayt)"
+
+imzali_mi() {
+  unzip -l "$1" 2>/dev/null | grep -qiE 'META-INF/.*\.(RSA|DSA|EC)$'
+}
+
+if imzali_mi "$APK_OUT"; then
+  echo "  durum: zaten IMZALI (p4a --sign calismis)"
+else
+  echo "  durum: IMZASIZ -> apksigner ile imzalaniyor"
+
+  # build-tools icinden en yeni apksigner'i bul
+  APKSIGNER=""
+  for bt in $(ls -1d "$SDK_DIR"/build-tools/*/ 2>/dev/null | sort -V -r); do
+    if [ -x "${bt}apksigner" ]; then APKSIGNER="${bt}apksigner"; break; fi
+  done
+  if [ -z "$APKSIGNER" ] && command -v apksigner >/dev/null 2>&1; then
+    APKSIGNER=$(command -v apksigner)
+  fi
+  if [ -z "$APKSIGNER" ]; then
+    echo "HATA: apksigner bulunamadi (SDK build-tools eksik)"
+    echo "      APK imzasiz kalir -> telefona KURULAMAZ"
+    exit 1
+  fi
+  echo "  apksigner: $APKSIGNER"
+
+  mv "$APK_OUT" "${APK_OUT%.apk}.imzasiz.apk"
+  set +e
+  "$APKSIGNER" sign \
+    --ks "$KEYSTORE" \
+    --ks-key-alias "$KEY_ALIAS" \
+    --ks-pass "pass:$KEYSTORE_PW" \
+    --key-pass "pass:$KEYSTORE_PW" \
+    --v1-signing-enabled true \
+    --v2-signing-enabled true \
+    --v3-signing-enabled true \
+    --out "$APK_OUT" \
+    "${APK_OUT%.apk}.imzasiz.apk" 2>&1 | tail -12
+  rc=$?
+  set -e
+  rm -f "${APK_OUT%.apk}.imzasiz.apk"
+
+  if imzali_mi "$APK_OUT"; then
+    echo "  durum: IMZANDI ✓  ($(stat -c%s "$APK_OUT") bayt)"
+    unzip -l "$APK_OUT" | grep -iE 'META-INF/.*\.(RSA|DSA|EC)$' | head -3
+  else
+    echo "HATA: imzalama basarisiz (apksigner rc=$rc)"
+    exit 1
+  fi
+fi
