@@ -71,6 +71,10 @@ def copy_game():
     n = 0
     eksik = []
     for f in GAME_FILES:
+        # main.py p4a'nin zorunlu girdi noktasi; onun yerine
+        # main_mobile.py geliyor. Oyunun asil girisi oyun_ana.py olur.
+        if f == "main.py":
+            continue
         src = os.path.join(kaynak, f)
         if os.path.isfile(src):
             shutil.copy2(src, os.path.join(APP, f))
@@ -80,12 +84,20 @@ def copy_game():
     if eksik:
         print("UYARI: bulunamayan oyun dosyalari: %s" % ", ".join(eksik))
 
-    # p4a giris noktasi (--launcher)
+    # oyunun asil girisi: main.py -> oyun_ana.py
+    oyun_giris = os.path.join(kaynak, "main.py")
+    if not os.path.isfile(oyun_giris):
+        print("HATA: oyunun giris dosyasi (main.py) bulunamadi")
+        return -1
+    shutil.copy2(oyun_giris, os.path.join(APP, "oyun_ana.py"))
+
+    # p4a giris noktasi: main_mobile.py -> main.py
     giris = os.path.join(AND, "main_mobile.py")
     if not os.path.isfile(giris):
         print("HATA: %s yok" % giris)
         return -1
-    shutil.copy2(giris, os.path.join(APP, "main_mobile.py"))
+    shutil.copy2(giris, os.path.join(APP, "main.py"))
+    # p4a --launcher secenegi kaldirilmis; giris noktasi main.py olmali
 
     # kayit klasoru yoksa bos olustur (oyun ilk acilista kendisi yaratir)
     for d in ("SAVE", "MOBIL"):
@@ -121,7 +133,8 @@ if __name__ == "__main__":
     n = copy_game()
     if n < 0:
         sys.exit(1)
-    print("ANDROID/app hazir: %d oyun dosyasi + main_mobile.py + requirements.txt"
-          % n)
-    print("Gerekenler: %s" % REQUIREMENTS.split())
+    print("ANDROID/app hazir: %d oyun dosyasi" % n)
+    print("  giris noktasi : main.py (main_mobile.py kopyasi)")
+    print("  oyun girisi   : oyun_ana.py")
+    print("  gerekenler    : %s" % REQUIREMENTS.split())
     print("Simdi derlemek icin:  bash ANDROID/build_apk_docker.sh")

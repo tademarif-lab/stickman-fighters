@@ -22,7 +22,6 @@ PACKAGE="${PACKAGE:-com.katil5019.stickmanfighters}"
 APP_NAME="${APP_NAME:-STICKMAN FIGHTERS}"
 VERSION="${VERSION:-1.4.0}"
 REQUIREMENTS="${REQUIREMENTS:-python3,pygame,setuptools}"
-LAUNCHER="${LAUNCHER:-main_mobile.py}"
 CACHE_MOUNT="${CACHE_MOUNT:-0}"
 
 AND_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -44,8 +43,9 @@ if [ ! -d "$APP_DIR" ]; then
   echo "HATA: $APP_DIR yok. Once 'python3 ANDROID/prepare.py' calistir."
   exit 1
 fi
-if [ ! -f "$APP_DIR/$LAUNCHER" ]; then
-  echo "HATA: $APP_DIR/$LAUNCHER bulunamadi."
+if [ ! -f "$APP_DIR/main.py" ]; then
+  echo "HATA: $APP_DIR/main.py bulunamadi."
+  echo "      (p4a giris noktasi = --private dizinindeki main.py)"
   exit 1
 fi
 for r in python3 hostpython3; do
@@ -65,7 +65,7 @@ echo "  paket      : $PACKAGE"
 echo "  surum      : $VERSION"
 echo "  uygulama   : $APP_NAME"
 echo "  gerekenler : $REQUIREMENTS"
-echo "  giris       : $LAUNCHER"
+echo "  giris       : main.py (p4a --private .)"
 echo "  SDK         : $SDK_DIR"
 echo "  NDK         : $NDK_DIR"
 echo "  onbellek   : $([ "$CACHE_MOUNT" = "1" ] && echo acik || echo kapali)"
@@ -126,7 +126,6 @@ docker run --rm \
   -e APP_NAME="$APP_NAME" \
   -e VERSION="$VERSION" \
   -e REQUIREMENTS="$REQUIREMENTS" \
-  -e LAUNCHER="$LAUNCHER" \
   -e SDK_DIR="$SDK_DIR" \
   -e NDK_DIR="$NDK_DIR" \
   -e P4A_VENV="$P4A_VENV" \

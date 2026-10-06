@@ -17,7 +17,14 @@ os.environ.setdefault("P4A_BOOTSTRAP", "sdl2")
 import pygame
 
 import settings
-import main as game_main
+
+try:
+    # APK icinde p4a giris noktasi `main.py` olmak ZORUNDA.
+    # Oyunun asil girisi bu yuzden `oyun_ana.py` adiyla kopyalanir.
+    import oyun_ana as game_main
+except ImportError:
+    # PC'de / telefonda calistirirken oyun dosyasi `main.py` olarak durur
+    import main as game_main
 
 PACKAGE = "com.katil5019.stickmanfighters"
 

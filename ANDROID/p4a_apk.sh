@@ -9,9 +9,12 @@
 #     APP_NAME    uygulama adi
 #     VERSION     surum
 #     REQUIREMENTS  p4a gereksinimleri
-#     LAUNCHER    giris noktasi dosyasi
 #     SDK_DIR     Android SDK yolu
 #     NDK_DIR     Android NDK yolu
+#
+#  p4a'da `--launcher` secenegi kaldirilmistir. Giris noktasi,
+#  `--private` dizinindeki `main.py` dosyasidir.
+# -----------------------------------------------------------------------------
 #
 #  Disaridan cagrilir:  bash ANDROID/build_apk_docker.sh
 # ==============================================================================
@@ -22,7 +25,6 @@ PACKAGE="${PACKAGE:-com.katil5019.stickmanfighters}"
 APP_NAME="${APP_NAME:-STICKMAN FIGHTERS}"
 VERSION="${VERSION:-1.4.0}"
 REQUIREMENTS="${REQUIREMENTS:-python3,pygame,setuptools}"
-LAUNCHER="${LAUNCHER:-main_mobile.py}"
 SDK_DIR="${SDK_DIR:-/home/user/.android/android-sdk}"
 NDK_DIR="${NDK_DIR:-/home/user/.android/android-ndk}"
 P4A_VENV="${P4A_VENV:-/home/user/app/venv}"
@@ -92,6 +94,9 @@ fi
 
 echo
 echo "=== DERLEME BASLADI (40-60 dakika surebilir) ==="
+# DIKKAT: p4a'da --launcher secenegi KALDIRILDI.
+# Giris noktasi, --private dizinindeki `main.py` dosyasidir.
+# prepare.py bu dosyayi main_mobile.py'den uretir.
 p4a apk \
   --arch="$ARCH" \
   --bootstrap=sdl2 \
@@ -99,12 +104,12 @@ p4a apk \
   --ndk-dir="$NDK_DIR" \
   --android-api="$API" \
   $LOCAL_FLAG \
+  --private . \
   --release \
   --package="$PACKAGE" \
   --name="$APP_NAME" \
   --version="$VERSION" \
   --requirements="$REQUIREMENTS" \
-  --launcher="$LAUNCHER" \
   --permission=INTERNET \
   --dist-name="STICKMAN-FIGHTERS-$VERSION" \
   .
