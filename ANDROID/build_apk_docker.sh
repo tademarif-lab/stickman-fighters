@@ -122,6 +122,11 @@ if [ ! -f "$P4A_SH" ]; then
 fi
 
 TOOLS="/home/user/app/andtools"
+# DIKKAT: konteynere HOST yollari degil, KONTEYNER yollari verilir.
+#   host  : $AND_DIR/uygulama.keystore   (dosya burada)
+#   iceri : $TOOLS/uygulama.keystore     (konteynerde burada gorunur)
+KEYSTORE_IN_CONTAINER="$TOOLS/uygulama.keystore"
+RECIPES_IN_CONTAINER="$TOOLS/local_recipes"
 
 docker run --rm \
   ${MOUNT[@]+"${MOUNT[@]}"} \
@@ -137,8 +142,8 @@ docker run --rm \
   -e SDK_DIR="$SDK_DIR" \
   -e NDK_DIR="$NDK_DIR" \
   -e P4A_VENV="$P4A_VENV" \
-  -e LOCAL_RECIPES="$TOOLS/local_recipes" \
-  -e KEYSTORE="$KEYSTORE" \
+  -e LOCAL_RECIPES="$RECIPES_IN_CONTAINER" \
+  -e KEYSTORE="$KEYSTORE_IN_CONTAINER" \
   "$IMG" \
   bash "$TOOLS/p4a_apk.sh"
 
