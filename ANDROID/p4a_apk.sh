@@ -71,15 +71,15 @@ LOCAL_RECIPES="./local_recipes"
 if [ -d "$LOCAL_RECIPES/python3" ] && [ -d "$LOCAL_RECIPES/hostpython3" ]; then
   echo
   echo "--- yerel tarif (python3 + hostpython3 -> 3.10.14) ---"
-  # p4a'nin kendi yama klasorlerini kopyala (recipe_dir orijinale
-  # cevriliyor ama --local-recipes verildiginde p4a once yerel dizini arar)
+  # Yamalar p4a'nin kendi tarif dizininden cozuluyor (get_recipe_dir
+  # override'i), bu yuzden kopyalama gerekmiyor. Sadece dogrula.
   for r in python3 hostpython3; do
     SRC=$(python -c "import os, pythonforandroid.recipes.$r as m; print(os.path.dirname(os.path.abspath(m.__file__)))" 2>/dev/null)
-    if [ -n "$SRC" ] && [ -d "$SRC/patches" ]; then
-      cp -r "$SRC/patches" "$LOCAL_RECIPES/$r/" 2>/dev/null || true
-      echo "  $r: yama kopyalandi ($(ls "$LOCAL_RECIPES/$r/patches" | wc -l) adet)"
+    if [ -n "$SRC" ] && [ -d "$SRC" ]; then
+      echo "  $r: p4a tarifi $SRC"
+      echo "     yamalar: $(ls "$SRC"/*.patch "$SRC"/patches/*.patch "$SRC"/patches/*.diff 2>/dev/null | wc -l) adet"
     else
-      echo "  $r: yama klasoru yok (p4a kaynak=$SRC)"
+      echo "  $r: p4a tarifi bulunamadi ($SRC)"
     fi
   done
   LOCAL_FLAG="--local-recipes=$LOCAL_RECIPES"

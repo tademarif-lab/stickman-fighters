@@ -16,32 +16,31 @@ C kodu Python 3.12+'da derlenemiyor:
   - pygame 2.1.0 Python 3.6-3.10 arasini resmen destekliyor
 
 p4a'nin Python3Recipe'i kullanilir; sadece `version` degistirilir.
-`apply_patches` surume gore yama ekledigi icim (3.8-3.10 -> py3.8.1.patch)
-p4a'nin kendi yamalarini kullanabilmek adina recipe_dir orijinale
-geri cevrilir.
 """
 import os
 
 from pythonforandroid.recipes import python3 as _upstream
 from pythonforandroid.recipes.python3 import Python3Recipe as _Upstream
 
+# p4a'nin gomulu tarif dizini (yamalar burada)
+_UPSTREAM_DIR = os.path.dirname(os.path.abspath(_upstream.__file__))
+
 
 class Python3Recipe(_Upstream):
     version = '3.10.14'
+
     url = ('https://github.com/python/cpython/archive/'
            'refs/tags/v{version}.tar.gz')
 
-    def apply_patches(self, arch, build_dir=None):
-        # p4a'nin kendi yamalarini kullanabilmek icin recipe_dir'i
-        # gomulu (yerel) dizinden orijinal tarif dizinine cevir.
-        # aksi halde patches/ klasoru burada olmadigi icin hata verir.
-        yedek = self.recipe_dir
-        self.recipe_dir = os.path.dirname(os.path.abspath(
-            _upstream.__file__))
-        try:
-            super().apply_patches(arch, build_dir)
-        finally:
-            self.recipe_dir = yedek
+    def get_recipe_dir(self):
+        """p4a'nin kendi tarif dizinini dondur.
+
+        `--local-recipes` verildiginde p4a once YEREL dizini arar; orada
+        p4a'nin surume gore ekledigi yamalar (patches/py3.8.1.patch,
+        patches/cpython-311-ctypes-find-library.patch) yok. Bu yuzden
+        orijinal dizini gosteriyoruz.
+        """
+        return _UPSTREAM_DIR
 
 
 recipe = Python3Recipe()
