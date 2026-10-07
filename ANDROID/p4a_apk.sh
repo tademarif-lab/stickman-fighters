@@ -30,6 +30,8 @@ NDK_DIR="${NDK_DIR:-/home/user/.android/android-ndk}"
 P4A_VENV="${P4A_VENV:-/home/user/app/venv}"
 LOCAL_RECIPES="${LOCAL_RECIPES:-/home/user/app/andtools/local_recipes}"
 KEYSTORE="${KEYSTORE:-/home/user/app/andtools/uygulama.keystore}"
+ICON="${ICON:-/home/user/app/andtools/oyun_ikon.png}"
+PRESPLASH="${PRESPLASH:-/home/user/app/andtools/kapak.png}"
 
 echo "--- ortam ---"
 # shellcheck disable=SC1090
@@ -120,11 +122,24 @@ echo "  alias : $KEY_ALIAS"
 keytool -list -keystore "$KEYSTORE" -storepass "$KEYSTORE_PW" 2>&1 \
   | grep -iE "alias|entry|valid" | head -4 || true
 
+# ---------------------------------------------------------------------
+# IKON / PRESPLASH
+# ---------------------------------------------------------------------
+# Verilmezse Android varsayilan bos ikonunu kullanir ( telefonda
+# gri kare gorunur). 256x256 ikon + kapak presplash olarak kullanilir.
+echo
+echo "--- ikon / presplash ---"
+for f in "$ICON" "$PRESPLASH"; do
+  if [ -f "$f" ]; then
+    echo "  VAR  $f"
+  else
+    echo "  YOK  $f  (varsayilan ikon kullanilacak)"
+  fi
+done
+
 echo
 echo "=== DERLEME BASLADI (10-120 dakika surebilir) ==="
 # DIKKAT: p4a argumanlari (guncel surum):
-#  - `--launcher` artik BAYRAK (argumansiz). Giris noktasi
-#    `--private` dizinindeki `main.py` dosyasidir.
 #  - `--dir` p4a seviyesinde YOK; kaynak dizin `--private` ile verilir
 #    (`--dir` sadece bootstrap'un build.py'sine p4a tarafindan iletilir).
 #  - Sondaki konumsal `.` argumani da kaldirilmis.
@@ -145,7 +160,6 @@ p4a apk \
   --android-api="$API" \
   --local-recipes="$LOCAL_RECIPES" \
   --private . \
-  --launcher \
   --release \
   --sign \
   --keystore="$KEYSTORE" \
@@ -156,6 +170,8 @@ p4a apk \
   --name="$APP_NAME" \
   --version="$VERSION" \
   --requirements="$REQUIREMENTS" \
+  --icon="$ICON" \
+  --presplash="$PRESPLASH" \
   --permission=INTERNET \
   --dist-name="STICKMAN-FIGHTERS-$VERSION"
 

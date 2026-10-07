@@ -57,15 +57,22 @@ for r in python3 hostpython3; do
 done
 # imza anahtari: ayni imzali APK uretebilmek icin sabit olmali
 KEYSTORE="$AND_DIR/uygulama.keystore"
-if [ ! -f "$KEYSTORE" ]; then
-  echo "HATA: $KEYSTORE yok."
-  echo "      Repoda olmali; yoksa APK imzasiz uretilir ve telefona kurulamaz."
-  echo "      Olusturma:  keytool -genkeypair -v -keystore uygulama.keystore \\"
-  echo "                  -storepass katil5019 -keypass katil5019 -alias stickman \\"
-  echo "                  -keyalg RSA -keysize 2048 -validity 10000 \\"
-  echo "                  -dname 'CN=STICKMAN FIGHTERS, O=KATIL5019, C=TR'"
-  exit 1
-fi
+# ikon dosyalari ANDROID/ icinde olmali (konteynere salt-okunur baglanir)
+for f in "$KEYSTORE" "$AND_DIR/oyun_ikon.png" "$AND_DIR/kapak.png"; do
+  if [ ! -f "$f" ]; then
+    echo "HATA: $f yok."
+    if [ "$f" = "$KEYSTORE" ]; then
+      echo "      Repoda ANDROID/uygulama.keystore olmali. Olusturma:"
+      echo "      keytool -genkeypair -v -keystore uygulama.keystore \\"
+      echo "        -storepass katil5019 -keypass katil5019 -alias stickman \\"
+      echo "        -keyalg RSA -keysize 2048 -validity 10000 \\"
+      echo "        -dname 'CN=STICKMAN FIGHTERS, O=KATIL5019, C=TR'"
+    else
+      echo "      Ikon (256x256) ve kapak (presplash) PNG dosyalari gerekli."
+    fi
+    exit 1
+  fi
+done
 
 echo "=============================================="
 echo " STICKMAN FIGHTERS - APK DERLEME"
@@ -76,7 +83,8 @@ echo "  paket      : $PACKAGE"
 echo "  surum      : $VERSION"
 echo "  uygulama   : $APP_NAME"
 echo "  gerekenler : $REQUIREMENTS"
-echo "  giris       : main.py (p4a --private .)"
+echo "  ikon       : $ICON_IN_CONTAINER"
+echo "  presplash  : $PRESPLASH_IN_CONTAINER"
 echo "  SDK         : $SDK_DIR"
 echo "  NDK         : $NDK_DIR"
 echo "  onbellek   : $([ "$CACHE_MOUNT" = "1" ] && echo acik || echo kapali)"
@@ -127,6 +135,8 @@ TOOLS="/home/user/app/andtools"
 #   iceri : $TOOLS/uygulama.keystore     (konteynerde burada gorunur)
 KEYSTORE_IN_CONTAINER="$TOOLS/uygulama.keystore"
 RECIPES_IN_CONTAINER="$TOOLS/local_recipes"
+ICON_IN_CONTAINER="$TOOLS/oyun_ikon.png"
+PRESPLASH_IN_CONTAINER="$TOOLS/kapak.png"
 
 docker run --rm \
   ${MOUNT[@]+"${MOUNT[@]}"} \
@@ -144,6 +154,8 @@ docker run --rm \
   -e P4A_VENV="$P4A_VENV" \
   -e LOCAL_RECIPES="$RECIPES_IN_CONTAINER" \
   -e KEYSTORE="$KEYSTORE_IN_CONTAINER" \
+  -e ICON="$ICON_IN_CONTAINER" \
+  -e PRESPLASH="$PRESPLASH_IN_CONTAINER" \
   "$IMG" \
   bash "$TOOLS/p4a_apk.sh"
 
