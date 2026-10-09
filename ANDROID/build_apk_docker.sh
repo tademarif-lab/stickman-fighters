@@ -33,6 +33,8 @@ TOOLS="/home/user/app/andtools"
 KEYSTORE_IN_CONTAINER="$TOOLS/uygulama.keystore"
 RECIPES_IN_CONTAINER="$TOOLS/local_recipes"
 ICON_IN_CONTAINER="$TOOLS/oyun_ikon.png"
+ICON_FG_IN_CONTAINER="$TOOLS/icon_fg.png"
+ICON_BG_IN_CONTAINER="$TOOLS/icon_bg.png"
 PRESPLASH_IN_CONTAINER="$TOOLS/kapak.png"
 APP_DIR="$AND_DIR/app"
 CACHE_DIR="$AND_DIR/.p4a-cache"
@@ -156,6 +158,8 @@ docker run --rm \
   -e LOCAL_RECIPES="$RECIPES_IN_CONTAINER" \
   -e KEYSTORE="$KEYSTORE_IN_CONTAINER" \
   -e ICON="$ICON_IN_CONTAINER" \
+  -e ICON_FG="$ICON_FG_IN_CONTAINER" \
+  -e ICON_BG="$ICON_BG_IN_CONTAINER" \
   -e PRESPLASH="$PRESPLASH_IN_CONTAINER" \
   "$IMG" \
   bash "$TOOLS/p4a_apk.sh"

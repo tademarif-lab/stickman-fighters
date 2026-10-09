@@ -31,6 +31,11 @@ P4A_VENV="${P4A_VENV:-/home/user/app/venv}"
 LOCAL_RECIPES="${LOCAL_RECIPES:-/home/user/app/andtools/local_recipes}"
 KEYSTORE="${KEYSTORE:-/home/user/app/andtools/uygulama.keystore}"
 ICON="${ICON:-/home/user/app/andtools/oyun_ikon.png}"
+# Android 8+ launcher ikonu daire/superellipse olarak MASKELER.
+# Bu yuzden ayri on plan (fg) + arka plan (bg) gerekir; bootstrap build.py
+# bunlardan mipmap-anydpi-v26/icon.xml (adaptive-icon) uretir.
+ICON_FG="${ICON_FG:-/home/user/app/andtools/icon_fg.png}"
+ICON_BG="${ICON_BG:-/home/user/app/andtools/icon_bg.png}"
 PRESPLASH="${PRESPLASH:-/home/user/app/andtools/kapak.png}"
 
 echo "--- ortam ---"
@@ -125,17 +130,23 @@ keytool -list -keystore "$KEYSTORE" -storepass "$KEYSTORE_PW" 2>&1 \
 # ---------------------------------------------------------------------
 # IKON / PRESPLASH
 # ---------------------------------------------------------------------
-# Verilmezse Android varsayilan bos ikonunu kullanir ( telefonda
+# Verilmezse Android varsayilan bos ikonunu kullanir (telefonda
 # gri kare gorunur). 256x256 ikon + kapak presplash olarak kullanilir.
 echo
 echo "--- ikon / presplash ---"
-for f in "$ICON" "$PRESPLASH"; do
+for f in "$ICON" "$ICON_FG" "$ICON_BG" "$PRESPLASH"; do
   if [ -f "$f" ]; then
     echo "  VAR  $f"
   else
-    echo "  YOK  $f  (varsayilan ikon kullanilacak)"
+    echo "  YOK  $f  (bu gorsel kullanilmayacak)"
   fi
 done
+# adaptive icon (Android 8+) icin fg+bg birlikte olmali
+if [ -f "$ICON_FG" ] && [ -f "$ICON_BG" ]; then
+  echo "  adaptive icon (Android 8+): ETKIN"
+else
+  echo "  adaptive icon (Android 8+): KAPALI (fg veya bg eksik)"
+fi
 
 echo
 echo "=== DERLEME BASLADI (10-120 dakika surebilir) ==="
@@ -171,6 +182,8 @@ p4a apk \
   --version="$VERSION" \
   --requirements="$REQUIREMENTS" \
   --icon="$ICON" \
+  --icon-fg="$ICON_FG" \
+  --icon-bg="$ICON_BG" \
   --presplash="$PRESPLASH" \
   --permission=INTERNET \
   --dist-name="STICKMAN-FIGHTERS-$VERSION"
