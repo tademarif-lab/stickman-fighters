@@ -163,6 +163,12 @@ echo "=== DERLEME BASLADI (10-120 dakika surebilir) ==="
 #        build.tmpl.gradle:78  release { signingConfig signingConfigs.release }
 #    p4a bu bayragi OTOMATIK GEÇIRMEZ; `unknown_args` sayesinde dogrudan
 #    bootstrap'a ulasir. YOKSA APK "IMZASIZ" uretilir, Android KURMAZ.
+#  - YATAY KILIT: `--manifest-orientation=landscape` ->
+#    android:screenOrientation="landscape" yazilir. Oyun 16:9 YATAY
+#    tasarimli oldugu icin telefon yan tutulunca ekran otomatik doner.
+#    `--orientation` ayrica SDL pencere ipuclarini da yatay yapar.
+#    (bootstrap build.py:803 get_manifest_orientation,
+#              build.py:1133 args.manifest_orientation = ...)
 p4a apk \
   --arch="$ARCH" \
   --bootstrap=sdl2 \
@@ -181,6 +187,8 @@ p4a apk \
   --name="$APP_NAME" \
   --version="$VERSION" \
   --requirements="$REQUIREMENTS" \
+  --manifest-orientation=landscape \
+  --orientation=landscape \
   --icon="$ICON" \
   --icon-fg="$ICON_FG" \
   --icon-bg="$ICON_BG" \

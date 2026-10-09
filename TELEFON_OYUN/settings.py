@@ -12,9 +12,58 @@ HIDE_KEY_BAR = False      # mobilde klavye cubugu gizlenir
 MENU_COMPACT = False      # kucuk ekranda sik menu
 MOBILE_CONF = {}          # MOBIL/mobil_config.json
 
+# ======================================================================
+#  YATAY (LANDSCAPE) TASARIM
+#  Oyun daima yatay 16:9 formatta tasarlanir. Telefon dikey tutulsa bile
+#  Android'e yatay kilitlenir (bkz. ANDROID/p4a_apk.sh: --manifest-orientation)
+#  Ayrica cihaz ekrani dikey gelirse mantiksal yuzey yine de yatay kalir;
+#  oyun ekranin ortasinda duz (letterbox) gosterilir.
+# ======================================================================
+LANDSCAPE = True
+# Cihazin KISA kenarina gore secilecek mantiksal cozunurlukler (16:9)
+LANDSCAPE_SIZES = [
+    (1280, 720), (1152, 648), (1024, 576), (960, 540),
+    (854, 480), (800, 450), (720, 405), (640, 360),
+]
+
+# Eski dikey-destekli liste (geriye donuk uyumluluk)
+PORTRAIT_SIZES = [(540, 960), (960, 540), (1280, 800)]
+
+
+def landscape_target(win_w, win_h):
+    """Cihaz ekranina gore YATAY (16:9) mantiksal cozunurluk dondurur.
+
+    Telefon YATAY kilitli oldugu icin kullanilabilir alan her zaman
+    (genis, dar) sirasindadir: dikey tutulan 1080x1920 telefon yatay
+    dondugunde 1920x1080 gorunur.
+
+    Kural: secilen cozunurluk hem genisligi hem yuksekligi siğacak en
+    buyuk 16:9 boyut olmali. Boylece 360p telefonda 640x360, 720p
+    telefonda 1280x720, tablet'te de 1280x720 (tavanda) secilir.
+    """
+    if not win_w or not win_h:
+        return 1280, 720
+    # yatay dondugunde kullanilabilir alan
+    avail_w = int(max(win_w, win_h))
+    avail_h = int(min(win_w, win_h))
+
+    sec = None
+    # LANDSCAPE_SIZES buyukten kucuge siralidir; ilk sigan en iyisidir
+    for (w, h) in LANDSCAPE_SIZES:
+        if w <= avail_w and h <= avail_h:
+            sec = (w, h)
+            break
+    if sec is None:
+        # hicbiri sigmiyor -> olcekle
+        k = min(avail_w / 16.0, avail_h / 9.0)
+        sec = (int(16 * k), int(9 * k))
+    tw, th = sec
+    # guvenlik tabani: cok kucuk ekranlarda okunabilirlik icin
+    return max(480, tw), max(270, th)
+
 
 def mobile_setup(win_w, win_h):
-    """Kucuk ekrana gore cozunurlugu ve modu ayarlar."""
+    """Kucuk ekrana gore cozunurlugu ve modu ayarlar (YATAY)."""
     global SCREEN_W, SCREEN_H, MENU_COMPACT, TOUCH_SHOW, MOBILE_CONF
     global HIDE_KEY_BAR
     try:
@@ -26,17 +75,19 @@ def mobile_setup(win_w, win_h):
             MOBILE_CONF = json.load(f)
     except Exception:
         MOBILE_CONF = {}
-    dev = int(MOBILE_CONF.get("device", 0))
-    sizes = [(540, 960), (960, 540), (1280, 800)]
-    tw, th = sizes[dev if dev < len(sizes) else 0]
-    if win_w and win_h:
-        # cihaz ekranini dikey/yatay uyumuna gore hedef cozunurluge cevir
-        want_land = (win_w > win_h)
-        have_land = (tw > th)
-        if want_land != have_land:
-            tw, th = th, tw
-        tw = max(420, min(win_w, tw))
-        th = max(320, min(win_h, th))
+
+    if LANDSCAPE:
+        tw, th = landscape_target(win_w, win_h)
+    else:
+        dev = int(MOBILE_CONF.get("device", 0))
+        sizes = PORTRAIT_SIZES
+        tw, th = sizes[dev if dev < len(sizes) else 0]
+        if win_w and win_h:
+            if (win_w > win_h) != (tw > th):
+                tw, th = th, tw
+            tw = max(420, min(win_w, tw))
+            th = max(320, min(win_h, th))
+
     SCREEN_W, SCREEN_H = tw, th
     MENU_COMPACT = SCREEN_W < 1000
     TOUCH_SHOW = bool(MOBILE_CONF.get("show_touch", True))
