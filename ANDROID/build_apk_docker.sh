@@ -25,6 +25,15 @@ REQUIREMENTS="${REQUIREMENTS:-python3,pygame,setuptools}"
 CACHE_MOUNT="${CACHE_MOUNT:-0}"
 
 AND_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+TOOLS="/home/user/app/andtools"
+# DIKKAT: konteynere HOST yollari degil, KONTEYNER yollari verilir.
+#   host  : $AND_DIR/uygulama.keystore   (dosya burada)
+#   iceri : $TOOLS/uygulama.keystore     (konteynerde burada gorunur)
+KEYSTORE_IN_CONTAINER="$TOOLS/uygulama.keystore"
+RECIPES_IN_CONTAINER="$TOOLS/local_recipes"
+ICON_IN_CONTAINER="$TOOLS/oyun_ikon.png"
+PRESPLASH_IN_CONTAINER="$TOOLS/kapak.png"
 APP_DIR="$AND_DIR/app"
 CACHE_DIR="$AND_DIR/.p4a-cache"
 
@@ -129,14 +138,6 @@ if [ ! -f "$P4A_SH" ]; then
   exit 1
 fi
 
-TOOLS="/home/user/app/andtools"
-# DIKKAT: konteynere HOST yollari degil, KONTEYNER yollari verilir.
-#   host  : $AND_DIR/uygulama.keystore   (dosya burada)
-#   iceri : $TOOLS/uygulama.keystore     (konteynerde burada gorunur)
-KEYSTORE_IN_CONTAINER="$TOOLS/uygulama.keystore"
-RECIPES_IN_CONTAINER="$TOOLS/local_recipes"
-ICON_IN_CONTAINER="$TOOLS/oyun_ikon.png"
-PRESPLASH_IN_CONTAINER="$TOOLS/kapak.png"
 
 docker run --rm \
   ${MOUNT[@]+"${MOUNT[@]}"} \
