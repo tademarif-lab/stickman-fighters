@@ -40,20 +40,32 @@ class PlayerInput:
 
 
 class Game:
-    def __init__(self, w=None, h=None, mobile=False):
+    def __init__(self, w=None, h=None, mobile=False, surface=None):
         pygame.init()
         self.mobile = bool(mobile)
         if self.mobile:
             settings.MOBILE = True
             mw, mh = settings.mobile_setup(w or 0, h or 0)
             self._sync_screen(mw, mh)
-            self.screen = pygame.display.set_mode((mw, mh), pygame.FULLSCREEN)
+            # `surface` verilmisse (APK giris noktasi) TEKRAR set_mode
+            # CAGRILMAZ. Android/EGL'de iki kez set_mode native crash
+            # yapiyor (SIGSEGV, Python except yakalayamaz).
+            if surface is not None:
+                self.screen = surface
+                mw, mh = surface.get_size()
+            else:
+                self.screen = pygame.display.set_mode((mw, mh),
+                                                      pygame.FULLSCREEN)
             self.W, self.H = mw, mh
             self.touch_layout = TouchLayout(mw, mh)
             self.touch = TouchInput(self.touch_layout)
         else:
-            self.screen = pygame.display.set_mode((w or SCREEN_W,
-                                                   h or SCREEN_H))
+            if surface is not None:
+                self.screen = surface
+                w, h = surface.get_size()
+            else:
+                self.screen = pygame.display.set_mode((w or SCREEN_W,
+                                                       h or SCREEN_H))
             self.W, self.H = SCREEN_W, SCREEN_H
             self.touch_layout = None
             self.touch = None
