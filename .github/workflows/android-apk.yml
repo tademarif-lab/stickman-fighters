@@ -136,26 +136,17 @@ jobs:
             exit 0
           fi
           echo "Dogrulanan dosya: $apk"
-          docker run --rm -v "$GITHUB_WORKSPACE:/w" -w /w \
-            kivy/python-for-android:latest bash -lc '
-              SDK=/home/user/.android/android-sdk
-              AAPT=$(ls -1 '"$SDK"'/build-tools/*/aapt2 2>/dev/null | tail -n1)
-              if [ -z "$AAPT" ]; then
-                echo "aapt2 bulunamadi"
-                exit 0
-              fi
-              echo "aapt2: $AAPT"
-              $AAPT dump badging '"$apk"' 2>/dev/null | head -40
-              echo "--- IMZA (apksigner verify) ---"
-              SIG=$(ls -1 '"$SDK"'/build-tools/*/apksigner 2>/dev/null | tail -n1)
-              if [ -n "$SIG" ]; then
-                $SIG verify --print-certs '"$apk"' 2>&1 | head -12
-              fi
-            ' 2>&1 | tee apk-badging.txt
+          # NOT: dogrulama scripti dosya olarak calistirilir. `bash -lc '...'`
+          # icinde ic ice tirnak kullanmak $SDK gibi degiskenleri sifirlar.
+          docker run --rm \
+            -v "$GITHUB_WORKSPACE:/w" -v "$GITHUB_WORKSPACE/ANDROID:/t:ro" \
+            -w /w -e SDK_DIR=/home/user/.android/android-sdk \
+            kivy/python-for-android:latest \
+            bash /t/apk_dogrula.sh "/w/$apk" 2>&1 | tee apk-badging.txt
           echo
-          echo "### APK BADGING" >> $GITHUB_STEP_SUMMARY
+          echo "### APK DOGRULAMA" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
-          head -60 apk-badging.txt >> $GITHUB_STEP_SUMMARY
+          head -80 apk-badging.txt >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
 
       - name: Ozet yaz
