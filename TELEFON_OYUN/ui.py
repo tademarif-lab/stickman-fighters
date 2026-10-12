@@ -53,12 +53,49 @@ class MenuScreen:
         self.icons = ["play", "net", "gear", "coin", "book", "door"]
         self.index = 0
         self.hover = -1
-        self.buttons = []
-        for i, _ in enumerate(self.items):
-            self.buttons.append(pygame.Rect(SCREEN_W // 2 - 190, 318 + i * 74, 380, 60))
+        self.buttons = self._layout()
         self.motes = [[random.uniform(0, SCREEN_W), random.uniform(0, SCREEN_H),
                      random.uniform(6, 22), random.uniform(-14, -4)]
                     for _ in range(48)]
+
+    def _head(self):
+        """Baslik blogunun olculeri - ekran yuksekligine gore olceklenir.
+
+        Donus: (olcek, baslik_fontu, y_baslik1, y_baslik2, y_rozet, h_rozet)
+
+        Satirlar ust uste binmesin diye y2 = y1 + satir araligi, rozet de
+        y2'nin ALTINA gelir. 1280x720'de 140 / 216 / 261 / 32 cikar.
+        """
+        k = max(0.42, min(1.0, SCREEN_H / 720.0))
+        fs = max(26, int(96 * k))
+        y1 = int(SCREEN_H * 0.195)
+        y2 = y1 + int(fs * 0.95)              # iki satir ust uste binmesin
+        bh = max(18, int(32 * k))
+        by = y2 + int(fs * 0.72)              # rozet basligin ALTINDA
+        return k, fs, y1, y2, by, bh
+
+    def _layout(self):
+        """Butonlari ekrana SIGDIRAN dinamik duzen.
+
+        Once 6 buton sabit olarak y=318 + i*74 ile yerlestiriliyordu;
+        720 yukseklikte son buton 748'e (ekran disi) tasiyor, 360
+        yukseklikte ise butonlarin TAMAMI ekran disinda kaliyordu.
+        Artik buton yokusu ve yuksekligi ekran yuksekliginden hesaplanir.
+        """
+        n = len(self.items)
+        _k, _fs, _y1, _y2, by, bh = self._head()
+        w = max(200, min(380, SCREEN_W - 120))
+        ust = by + bh + 10                      # baslik blogunun alti
+        alt_serit = max(40, int(SCREEN_H * 0.07))   # alt ipucu yazisi
+        kullanilabilir = SCREEN_H - ust - alt_serit
+        bosluk = max(3, int(kullanilabilir * 0.04))
+        h = int((kullanilabilir - bosluk * (n - 1)) / n)
+        h = max(22, min(60, h))
+        adim = h + bosluk
+        toplam = h * n + bosluk * (n - 1)
+        y0 = ust + max(0, (kullanilabilir - toplam) // 2)
+        x = (SCREEN_W - w) // 2
+        return [pygame.Rect(x, y0 + i * adim, w, h) for i in range(n)]
 
     def update(self, dt):
         self.t += dt
@@ -158,18 +195,28 @@ class MenuScreen:
             a = int(26 + 22 * (0.5 + 0.5 * math.sin(self.t * 1.6 + x * 0.02)))
             pygame.draw.circle(surf, (255, 210, 120, a), (int(x), int(y)), int(r * 0.18))
         cx = SCREEN_W // 2
-        glow = pygame.Surface((760, 300), pygame.SRCALPHA)
-        for rr in range(150, 0, -10):
-            g = int(30 * (1 - rr / 150))
-            pygame.draw.ellipse(glow, (255, 190, 60, g), (380 - rr * 2, 150 - rr,
-                                                        rr * 4, rr * 2))
-        surf.blit(glow, (cx - 380, 20))
-        draw_text(surf, "STICKMAN", 96, GOLD, (cx, 140))
-        draw_text(surf, "FIGHTERS", 96, (255, 255, 255), (cx, 232))
-        badge = pygame.Rect(cx - 150, 276, 300, 32)
-        pygame.draw.rect(surf, (26, 32, 50), badge, border_radius=16)
-        pygame.draw.rect(surf, GOLD, badge, 2, border_radius=16)
-        draw_text(surf, f"SÜRÜM {VERSION}  •  {UPDATE_NOTE}", 15, GOLD, badge.center)
+        hk, hfs, hy1, hy2, hby, hbh = self._head()
+        gw, gh = int(760 * hk), int(300 * hk)
+        glow = pygame.Surface((max(8, gw), max(8, gh)), pygame.SRCALPHA)
+        rmax = int(150 * hk)
+        gcx, gcy = gw // 2, gh // 2
+        for rr in range(rmax, 0, -max(6, int(10 * hk))):
+            g = int(30 * (1 - rr / float(rmax)))
+            pygame.draw.ellipse(glow, (255, 190, 60, g),
+                                (gcx - rr * 2, gcy - rr, rr * 4, rr * 2))
+        surf.blit(glow, (cx - gw // 2, int(20 * hk)))
+        draw_text(surf, "STICKMAN", hfs, GOLD, (cx, hy1))
+        draw_text(surf, "FIGHTERS", hfs, (255, 255, 255), (cx, hy2))
+        bw = max(180, min(int(300 * hk) + 60, SCREEN_W - 60))
+        badge = pygame.Rect(cx - bw // 2, hby, bw, hbh)
+        pygame.draw.rect(surf, (26, 32, 50), badge, border_radius=hbh // 2)
+        pygame.draw.rect(surf, GOLD, badge, 2, border_radius=hbh // 2)
+        bfs = max(10, int(15 * hk))
+        while bfs > 9 and get_font(bfs).size(
+                "SÜRÜM %s  •  %s" % (VERSION, UPDATE_NOTE))[0] > bw - 16:
+            bfs -= 1
+        draw_text(surf, "SÜRÜM %s  •  %s" % (VERSION, UPDATE_NOTE),
+                  bfs, GOLD, badge.center)
         for i, (label, rect) in enumerate(zip(self.items, self.buttons)):
             active = (i == self.index) or (i == self.hover)
             body = blend((24, 30, 48), GOLD, 0.22) if active else (24, 30, 48)
@@ -185,18 +232,30 @@ class MenuScreen:
                 pygame.draw.rect(surf, (70, 62, 34), (r2.right + 10, r2.y + 8,
                                                        5, r2.h - 16), border_radius=3)
             col = (255, 255, 255) if active else (150, 158, 180)
-            self._icon(surf, r2.x + 38, r2.centery, self.icons[i],
+            pad = max(18, int(38 * hk))
+            self._icon(surf, r2.x + pad, r2.centery, self.icons[i],
                        GOLD if active else (110, 120, 148))
-            lx = r2.centerx + 18
-            fs = 28
-            while fs > 14 and get_font(fs).size(label)[0] > r2.w - 150:
+            lx = r2.centerx + int(18 * hk)
+            oda = max(60, r2.w - 2 * pad - 40)
+            # font ve ipucu buton YUKSEKLIGINE gore olceklenir; buton
+            # kisa (kucuk ekran) ise ipucu hic gosterilmez, yoksa
+            # etiketin uzerine biniyordu
+            fs = max(12, int(r2.h * 0.47))
+            while fs > 10 and get_font(fs).size(label)[0] > oda:
                 fs -= 1
-            draw_text(surf, label, fs, col, (lx, r2.centery - 8))
-            draw_text(surf, self.hints[i], 13,
-                      GOLD if active else (110, 118, 140),
-                      (lx, r2.centery + 16))
+            ipucu_var = r2.h >= 34
+            hfs2 = max(8, int(r2.h * 0.22))
+            if ipucu_var:
+                draw_text(surf, label, fs, col,
+                          (lx, r2.centery - r2.h * 0.13))
+                draw_text(surf, self.hints[i], hfs2,
+                          GOLD if active else (110, 118, 140),
+                          (lx, r2.centery + r2.h * 0.27))
+            else:
+                draw_text(surf, label, fs, col, (lx, r2.centery))
         draw_text(surf, "↑ ↓ VE TIKLAMA   •   ENTER: SEÇ   •   F11: TAM EKRAN",
-                  16, (130, 140, 165), (cx, SCREEN_H - 34))
+                  max(11, int(16 * hk)), (130, 140, 165),
+                  (cx, SCREEN_H - max(14, int(34 * hk))))
 
 
 class ChangelogScreen:

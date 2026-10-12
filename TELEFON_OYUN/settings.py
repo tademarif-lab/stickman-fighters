@@ -1202,25 +1202,47 @@ def clear_touch_pos():
 
 
 LOGICAL_SURFACE = None
+DISPLAY_SURFACE = None
 
 
 def set_logical_surface(surf):
-    """Cizim yuzeyini sabitler (mobilde ekran olcegi degisebilir)."""
+    """CIZIM yuzeyini sabitler. Bu yuzey her zaman SCREEN_W x SCREEN_H
+    (mantiksal) boyuttadir; buton/cizim koordinatlari buna gore."""
     global LOGICAL_SURFACE
     LOGICAL_SURFACE = surf
 
 
+def set_display_surface(surf):
+    """GERCEK EKRAN yuzeyini sabitler. Telefonda 1280x720 mantiksal
+    cerceve 2400x1080 ekrana olceklenerek basilir; tiklama once burada
+    ekran koordinatina, sonra `logical_pos` ile mantiksal koordinata
+    cevrilir."""
+    global DISPLAY_SURFACE
+    DISPLAY_SURFACE = surf
+
+
+def display_size():
+    """Ekranin gercek piksel boyutu."""
+    s = DISPLAY_SURFACE or pygame.display.get_surface()
+    if s is None:
+        return (SCREEN_W, SCREEN_H)
+    return s.get_size()
+
+
 def logical_pos(pos=None):
+    """(ekran_x, ekran_y) -> (mantiksal_x, mantiksal_y)."""
     if pos is None:
         if MOBILE and _TOUCH_POS != [0, 0]:
             pos = (_TOUCH_POS[0], _TOUCH_POS[1])
         else:
             pos = pygame.mouse.get_pos()
     x, y = pos
-    s = LOGICAL_SURFACE or pygame.display.get_surface()
+    s = DISPLAY_SURFACE or LOGICAL_SURFACE or pygame.display.get_surface()
     if s is None:
         return (int(x), int(y))
     sw, sh = s.get_size()
+    if sw <= 0 or sh <= 0:
+        return (int(x), int(y))
     k = min(sw / SCREEN_W, sh / SCREEN_H)
     w, h = SCREEN_W * k, SCREEN_H * k
     offx = (sw - w) / 2.0

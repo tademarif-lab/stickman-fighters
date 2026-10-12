@@ -12,11 +12,23 @@ def _hp_color(f):
 class HUD:
     def __init__(self):
         small = settings.MOBILE or settings.MENU_COMPACT
-        self.hp_h = 34 if small else 58
-        self.bot_h = 0 if getattr(settings, "HIDE_KEY_BAR", False) else (
-            84 if not small else 68)
+        # ekran yuksekligine gore olceklenir (360'da sabit 34+68 px
+        # bandin %28'iydi ve ic can cubugu ekran disina tasiyordu)
+        self.k = max(0.45, min(1.0, SCREEN_H / 720.0))
+        k = self.k
+        self.hp_h = max(22, int((34 if small else 58) * k))
+        self.bot_h = 0 if getattr(settings, "HIDE_KEY_BAR", False) else max(
+            30, int((84 if not small else 68) * k))
         self.hp_y = SCREEN_H - self.hp_h - self.bot_h
         self.bot_y = SCREEN_H - self.bot_h
+        self.bar_h = max(12, int((20 if settings.MOBILE else 28) * k))
+        # ic cubuk daima seridin icinde kalir
+        self.bar_y = self.hp_y + (self.hp_h - self.bar_h) // 2
+
+    def ust_serit_y(self):
+        """Alt HUD bandinin UST kenarı (dokunmatik kontroller buraya
+        kadar yerlesmeli, yoksa can cubugunu kapatiyorlar)."""
+        return self.hp_y
 
     def draw(self, surf, p1, p2, t):
         self._hpstrip(surf, p1, p2)
@@ -29,21 +41,25 @@ class HUD:
         pygame.draw.rect(surf, (70, 78, 100), (0, y, SCREEN_W, 2))
         pygame.draw.rect(surf, (70, 78, 100), (0, self.bot_y, SCREEN_W, 2))
         mid = SCREEN_W // 2
-        bar_w = mid - (56 if settings.MOBILE else 90)
-        fs = 13 if settings.MOBILE else 15
-        w1 = get_font(fs).size("OYUNCU 1")[0]
-        w2 = get_font(15).size("OYUNCU 2")[0]
-        draw_text(surf, "OYUNCU 1", fs, (235, 235, 245),
-                  (10 + w1 // 2, y + 6))
-        draw_text(surf, "OYUNCU 2", fs, (235, 235, 245),
-                  (SCREEN_W - 10 - w2 // 2, y + 6))
-        bh = 20 if settings.MOBILE else 28
-        by = y + (18 if settings.MOBILE else 22)
-        self._hp(surf, pygame.Rect(8, by, bar_w, bh), p1, anchor="left")
         off = 56 if settings.MOBILE else 90
+        bar_w = mid - off
+        fs = max(11, int((13 if settings.MOBILE else 15) * self.k))
+        w1 = get_font(fs).size("OYUNCU 1")[0]
+        w2 = get_font(fs).size("OYUNCU 2")[0]
+        # etiketler seridin USTUNDE: ic cubuk seridin tamamini kullaniyor,
+        # iceri yazinca kirpiliyorlardi
+        lbl_y = y - max(7, int(10 * self.k))
+        draw_text(surf, "OYUNCU 1", fs, (235, 235, 245),
+                  (10 + w1 // 2, lbl_y))
+        draw_text(surf, "OYUNCU 2", fs, (235, 235, 245),
+                  (SCREEN_W - 10 - w2 // 2, lbl_y))
+        bh = self.bar_h
+        by = self.bar_y
+        self._hp(surf, pygame.Rect(8, by, bar_w, bh), p1, anchor="left")
         self._hp(surf, pygame.Rect(mid + off, by, bar_w, bh),
                  p2, anchor="right")
-        draw_text(surf, "VS", 22 if settings.MOBILE else 30, GOLD, (mid, by))
+        draw_text(surf, "VS", max(14, int((22 if settings.MOBILE else 30)
+                                          * self.k)), GOLD, (mid, by))
 
     def _hp(self, surf, bar, fighter, anchor):
         bg = pygame.Surface((bar.w, bar.h), pygame.SRCALPHA)

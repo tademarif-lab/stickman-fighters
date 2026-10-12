@@ -15,33 +15,57 @@ JOY_IN = 30
 
 
 class TouchLayout:
-    def __init__(self, w, h, mode="coarse"):
+    def __init__(self, w, h, mode="coarse", alt_serit=0):
         self.w = w
         self.h = h
         self.mode = mode
+        # alt HUD bandinin ust kenari; kontroller bunun ALTINA giremez
+        # (once can cubugunun uzerine ciziyorlardi)
+        self.alt_serit = max(0, min(int(alt_serit), h))
         self.set_layout(mode)
 
     def set_layout(self, mode):
+        """Kontrolleri ekrana SIGDIRAN sekilde yerlestirir.
+
+        Once sabit boyutlardi: yetenek butonlari 80px ve diagonal olarak
+        yukari dogru diziliyordu (4*80 + 3*46 = 458px). 360 yukseklikte
+        en ustteki buton y=-122'ye duserek EKRAN DIŞINA cikiyordu
+        (640x360 telefonlarda dokunma hic calismiyordu).
+
+        Simdi: 4 yetenek 2x2 izgara, sag altta zipla + egilme, hepsi
+        alt HUD bandinin ustunde kalir.
+        """
         self.mode = mode
         w, h = self.w, self.h
-        m = 24
-        self.joy_center = (m + JOY_OUT - 10, h - m - JOY_OUT + 10)
-        big = JOY_OUT
-        # sag taraf: zipla (en sag), 4 yetenek yarim ay
-        self.btn_jump = pygame.Rect(w - m - big, h - m - big, big, big)
-        self.btn_crouch = pygame.Rect(w - m - big - big - m, h - m - big,
-                                      big, big)
-        r = BTN_R + 6
-        sz = r * 2
-        gap = sz // 2 + 6
-        self.btn_ulti = pygame.Rect(w - m - sz, h - m - sz * 2 - gap, sz, sz)
-        self.btn_a3 = pygame.Rect(self.btn_ulti.x - sz - gap, self.btn_ulti.y,
-                                  sz, sz)
-        self.btn_a2 = pygame.Rect(self.btn_a3.x, self.btn_a3.y - sz - gap,
-                                  sz, sz)
-        self.btn_a1 = pygame.Rect(self.btn_a2.x, self.btn_a2.y - sz - gap,
-                                  sz, sz)
-        self.btn_pause = pygame.Rect(m, m, 74, 44)
+        bot = self.alt_serit or h          # kullanilabilir alt sinir
+        k = max(0.40, min(1.0, min(w / 1280.0, bot / 720.0)))
+        m = max(10, int(24 * k))
+        jr = max(28, int(JOY_OUT * k))    # joystick / zipla boyutu
+
+        # yetenek butonlari icin sigacak en buyuk cap
+        sz = max(22, min(int((BTN_R + 6) * 2 * k),
+                         int((bot - 2 * m - jr) / 2.7),
+                         int(w * 0.32)))
+        gap = max(4, int(sz * 0.14))
+
+        # sol alt: joystick
+        self.joy_center = (m + jr - 10, bot - m - jr)
+
+        # sag alt: zipla (en sag) + egilme (solunda)
+        self.btn_jump = pygame.Rect(w - m - jr, bot - m - jr, jr, jr)
+        self.btn_crouch = pygame.Rect(w - m - jr * 2 - m // 2, bot - m - jr,
+                                      jr, jr)
+
+        # yetenekler: 2x2 izgara, zipla/egilmenin SOLUNDA
+        gx = self.btn_crouch.x - gap - (2 * sz + gap)
+        gy = bot - m - (2 * sz + gap)
+        self.btn_a1 = pygame.Rect(gx, gy + sz + gap, sz, sz)
+        self.btn_a2 = pygame.Rect(gx + sz + gap, gy + sz + gap, sz, sz)
+        self.btn_a3 = pygame.Rect(gx, gy, sz, sz)
+        self.btn_ulti = pygame.Rect(gx + sz + gap, gy, sz, sz)
+
+        self.btn_pause = pygame.Rect(m, m, max(48, int(74 * k)),
+                                     max(32, int(44 * k)))
         self.pause = False
 
 
@@ -64,10 +88,14 @@ class TouchInput:
         L = self.L
         jx, jy = L.joy_center
         vx, vy = self.joy_vec
-        kx, ky = jx + vx * (JOY_IN - 18), jy + vy * (JOY_IN - 18)
+        # joystick yaricaplari da yerlesime gore olceklenir
+        joy_out = max(20, L.btn_jump.w // 2)
+        joy_in = max(9, int(joy_out * (JOY_IN / float(JOY_OUT))))
+        kx, ky = jx + vx * (joy_in - 18), jy + vy * (joy_in - 18)
         base = pygame.Surface((L.w, L.h), pygame.SRCALPHA)
-        pygame.draw.circle(base, (255, 255, 255, alpha // 3), (jx, jy), JOY_OUT, 3)
-        pygame.draw.circle(base, (255, 255, 255, alpha), (kx, ky), JOY_IN)
+        pygame.draw.circle(base, (255, 255, 255, alpha // 3), (jx, jy),
+                           joy_out, 3)
+        pygame.draw.circle(base, (255, 255, 255, alpha), (kx, ky), joy_in)
         specs = [(L.btn_a1, "1", (235, 215, 130)),
                  (L.btn_a2, "2", (140, 200, 255)),
                  (L.btn_a3, "3", (255, 160, 160)),
@@ -80,7 +108,8 @@ class TouchInput:
                 (col[0], col[1], col[2], alpha // 2)
             pygame.draw.ellipse(base, c, r)
             pygame.draw.ellipse(base, (255, 255, 255, alpha), r, 3)
-            img = pygame.font.SysFont("segoeui", 22, True).render(
+            fs = max(11, int(r.h * 0.48))
+            img = pygame.font.SysFont("segoeui", fs, True).render(
                 txt, True, (255, 255, 255, alpha + 90))
             base.blit(img, img.get_rect(center=r.center))
         surf.blit(base, (0, 0))

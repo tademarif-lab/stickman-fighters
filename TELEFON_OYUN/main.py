@@ -47,22 +47,30 @@ class Game:
             settings.MOBILE = True
             mw, mh = settings.mobile_setup(w or 0, h or 0)
             self._sync_screen(mw, mh)
+            # ONEMLI: `mw, mh` BURDAN SONRA ASLA DEGISTIRILMEZ.
+            # Bunlar MANTIKSAL (logical) olculerdir: tum cizim, tum
+            # buton dikdortgeni ve tum dokunma bunlara gore hesaplanir.
+            # Once `mw, mh = surface.get_size()` yaziliyordu; telefon
+            # 2400x1080 iken cerceve de 2400x1080 oluyor, arayuz 1280x720
+            # koordinatlarinda cizilip 1.5x olcekleniyor ve BUTONLAR
+            # ekrana kayiyordu (DÜKKAN'a dokununca AYARLAR açiliyordu).
             # `surface` verilmisse (APK giris noktasi) TEKRAR set_mode
             # CAGRILMAZ. Android/EGL'de iki kez set_mode native crash
             # yapiyor (SIGSEGV, Python except yakalayamaz).
             if surface is not None:
                 self.screen = surface
-                mw, mh = surface.get_size()
             else:
                 self.screen = pygame.display.set_mode((mw, mh),
                                                       pygame.FULLSCREEN)
             self.W, self.H = mw, mh
-            self.touch_layout = TouchLayout(mw, mh)
+            # dokunmatik kontroller alt HUD bandinin ustune kurulur
+            import hud as _hud
+            self.touch_layout = TouchLayout(
+                mw, mh, alt_serit=_hud.HUD().ust_serit_y())
             self.touch = TouchInput(self.touch_layout)
         else:
             if surface is not None:
                 self.screen = surface
-                w, h = surface.get_size()
             else:
                 self.screen = pygame.display.set_mode((w or SCREEN_W,
                                                        h or SCREEN_H))
@@ -71,6 +79,7 @@ class Game:
             self.touch = None
         self.frame = pygame.Surface((self.W, self.H))
         settings.set_logical_surface(self.frame)
+        settings.set_display_surface(self.screen)
         pygame.display.set_caption(TITLE)
         self.clock = pygame.time.Clock()
         self.running = True
@@ -181,14 +190,16 @@ class Game:
 
     def toggle_fullscreen(self):
         if self.fullscreen:
-            self.screen = pygame.display.set_mode((SCREEN_W, SCREEN_H))
+            self.screen = pygame.display.set_mode((self.W, self.H))
             self.fullscreen = False
         else:
             try:
                 self.screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
                 self.fullscreen = True
             except pygame.error:
-                self.screen = pygame.display.set_mode((SCREEN_W, SCREEN_H))
+                self.screen = pygame.display.set_mode((self.W, self.H))
+        # ekran yuzeyi degistiyse tiklama cevirisi de guncellenmeli
+        settings.set_display_surface(self.screen)
 
     def _reset_inputs(self):
         self.p1 = PlayerInput()
@@ -215,9 +226,20 @@ class Game:
         except Exception:
             pass
 
+    def _finger_pos(self, e):
+        """Normalize edilmis parmak konumu (0..1) -> EKRAN koordinati.
+
+        Diktatorda `e.x/e.y` ekranin tamamina gore 0..1 araligindadir.
+        Butonlar mantiksal (SCREEN_W x SCREEN_H) koordinatlarda oldugu
+        icin burada ekran koordinati uretilir; `logical_pos` onu
+        mantiksal olcege cevirir.
+        """
+        dw, dh = settings.display_size()
+        return (int(e.x * dw), int(e.y * dh))
+
     def _finger_to_click(self, e):
         """Menulerde dokunma = tiklama."""
-        pos = (int(e.x * self.W), int(e.y * self.H))
+        pos = self._finger_pos(e)
         settings.set_touch_pos(pos)
         return pygame.event.Event(pygame.MOUSEBUTTONDOWN, button=1, pos=pos)
 
@@ -230,8 +252,7 @@ class Game:
             return True
         if e.type == pygame.FINGERUP:
             self.dispatch(pygame.event.Event(
-                pygame.MOUSEBUTTONUP, button=1,
-                pos=(int(e.x * self.W), int(e.y * self.H))))
+                pygame.MOUSEBUTTONUP, button=1, pos=self._finger_pos(e)))
             return True
         return False
 
@@ -292,7 +313,9 @@ class Game:
             now = time.time()
             if self.fight.craft_open and b in (1, 3):
                 owner = self.p1 if self.fight.craft_owner == 1 else self.p2
-                owner.mouse_pos = e.pos
+                # `e.pos` EKRAN koordinatidir; fight mantiksal
+                # koordinat kullanir -> ceviriyoruz.
+                owner.mouse_pos = logical_pos(e.pos)
                 if b == 1:
                     owner.left_click = True
                 else:
