@@ -13,7 +13,7 @@ PROJECTS = [
         "name": "STICKMAN FIGHTERS",
         "path": "",
         "entry": "main.py",
-        "cover": "oyun_ikon.jpg",
+        "cover": "oyun_ikon.png",
         "icon": "oyun_ikon.ico",
         "info": [
             ("OYUNUN AMACI", "İki oyuncu arenada çarpışır; son hayatta kalan kazanır."),
